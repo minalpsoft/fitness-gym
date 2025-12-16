@@ -1,13 +1,42 @@
 import React from 'react';
+import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function Payment({ navigation }) {
+export default function MakePayment({ navigation, route }) {
+
+    const {
+        planName,
+        price,
+        expiryDate
+    } = route.params || {};
+    const [coupon, setCoupon] = useState("");
+    const [discount, setDiscount] = useState(0);
+    const [finalAmount, setFinalAmount] = useState(price);
+    const [couponApplied, setCouponApplied] = useState(false);
+
+    // const handleApplyCoupon = () => {
+    //     if (!coupon) {
+    //         Alert.alert("Enter Coupon", "Please enter a voucher code");
+    //         return;
+    //     }
+
+    //     if (coupon === "GYM50") {
+    //         const discountAmount = price * 0.5;
+    //         setDiscount(discountAmount);
+    //         setFinalAmount(price - discountAmount);
+    //         setCouponApplied(true);
+    //         Alert.alert("Success", "Coupon applied successfully");
+    //     } else {
+    //         Alert.alert("Invalid Coupon", "Voucher not valid");
+    //     }
+    // };
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.backContainer}>
-                <TouchableOpacity onPress={() => navigation.navigate('ChoosePlan')}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back-outline" size={28} color="#20e880ff" />
                 </TouchableOpacity>
             </View>
@@ -23,16 +52,21 @@ export default function Payment({ navigation }) {
             <Text style={styles.welcomeText}>Make Payment</Text>
             <Text style={styles.subtitle}>Select your membership duration</Text>
 
-            <View
-                style={styles.selectedPlan}
-            >
-                <Text style={styles.selectedText}>Selected Plan : 1 Month</Text>
-                <Text style={styles.selectedText}>Rs.49</Text>
+            <View style={styles.selectedPlan}>
+                <Text style={styles.selectedText}>
+                    Selected Plan : {planName}
+                </Text>
+                <Text style={styles.selectedText}>
+                    Rs.{price}
+                </Text>
             </View>
 
             <View style={{ width: "100%", alignItems: "flex-start" }}>
-                <Text style={styles.expireText}>Expire On 30 Nov 2025</Text>
+                <Text style={styles.expireText}>
+                    Expire On: {expiryDate}
+                </Text>
             </View>
+
 
 
             <View style={styles.planCard}>
@@ -43,13 +77,39 @@ export default function Payment({ navigation }) {
                         style={styles.couponInput}
                         placeholder="Apply Coupon"
                         placeholderTextColor="#777"
+                        value={coupon}
+                        onChangeText={setCoupon}
+                        editable={!couponApplied}
                     />
+
+                    {/* <TouchableOpacity onPress={handleApplyCoupon}>
+                        <Text style={{ color: "green", fontWeight: "600", marginLeft: "15" }}>
+                            {couponApplied ? "Applied" : "Apply"}
+                        </Text>
+                    </TouchableOpacity>
+                    {couponApplied && (
+                        <>
+                            <Text style={styles.discountText}>
+                                Discount: - Rs.{discount}
+                            </Text>
+
+                            <Text style={styles.finalAmount}>
+                                Payable Amount: Rs.{finalAmount}
+                            </Text>
+                        </>
+                    )} */}
+
                 </View>
             </View>
 
 
 
-            <TouchableOpacity style={{ width: '100%' }} onPress={() => navigation.navigate('BuyPlan')}>
+            <TouchableOpacity
+                style={{ width: "100%" }} onPress={() => navigation.navigate("BuyPlan", {
+                    planName, price, expiryDate,
+                    couponCode: coupon, discount, finalAmount
+                })} >
+
                 <LinearGradient
                     colors={['#0081d1', '#1bc97b']}
                     start={{ x: 0.5, y: 0 }}

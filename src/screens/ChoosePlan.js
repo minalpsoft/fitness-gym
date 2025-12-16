@@ -1,19 +1,81 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import plansJson from "./plansJson.json"
+// const API_BASE_URL = Constants.expoConfig.extra.API_BASE_URL;
 
 export default function ChoosePlan({ navigation }) {
-    const [selectedPlan, setSelectedPlan] = useState('1 Month');
+    const [plans, setPlans] = useState([]);
+    const [selectedPlan, setSelectedPlan] = useState(null);
 
-    const plans = [
-        { label: '1 Day', duration: 'End Same Day', price: 49 },
-        { label: '1 Week', duration: '7 Day', price: 49 },
-        { label: '2 Weeks', duration: '14 Day', price: 49 },
-        { label: '1 Month', duration: '30 Day', price: 49 },
-        { label: '6 Months', duration: '180 Day', price: 49 },
-        { label: '12 Months', duration: '365 Day', price: 49 },
-    ];
+
+    useEffect(() => {
+        fetchPlans();
+    }, []);
+
+    //     const fetchPlans = async () => {
+    //     try {
+    //         const res = await fetch(`${API_BASE_URL}getPlans`, {
+    //             method: "GET",
+    //             headers: {
+    //                 "Content-Type": "application/json"
+    //             }
+    //         });
+
+    //         const response = await res.json();
+
+    //         if (response.errCode !== 0) {
+    //             Alert.alert("Error", response.msg || "Failed to load plans");
+    //             return;
+    //         }
+
+    //         setPlans(response.data);
+    //         setSelectedPlan(response.data[0]); 
+    //     } catch (err) {
+    //         Alert.alert("Error", "Something went wrong");
+    //     }
+    // };
+
+    const fetchPlans = async () => {
+        try {
+            const response = plansJson;
+
+            if (response.errCode !== 0) {
+                Alert.alert("Error", "Failed to load plans");
+                return;
+            }
+
+            setPlans(response.data);
+            setSelectedPlan(response.data[0]);
+        } catch (err) {
+            Alert.alert("Error", "Something went wrong");
+        }
+    };
+
+    const calculateExpiryDate = (days) => {
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        return date.toDateString();
+    };
+
+    const handleNext = () => {
+        if (!selectedPlan) {
+            Alert.alert("Select Plan", "Please select a plan");
+            return;
+        }
+
+        const payload = {
+            planId: selectedPlan.id,
+            planName: selectedPlan.label,
+            price: selectedPlan.price,
+            durationDays: selectedPlan.days,
+            expiryDate: calculateExpiryDate(selectedPlan.days)
+        };
+
+        console.log("Selected Plan Payload:", payload);
+        navigation.navigate("MakePayment", payload);
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -32,45 +94,52 @@ export default function ChoosePlan({ navigation }) {
             <Text style={styles.title}>Choose your plan</Text>
             <Text style={styles.subtitle}>Select your membership duration</Text>
 
+
             {plans.map((plan) => (
                 <TouchableOpacity
-                    key={plan.label}
+                    key={plan.id}
                     style={[
                         styles.planCard,
-                        selectedPlan === plan.label && styles.selectedPlanCard
+                        selectedPlan?.id === plan.id && styles.selectedPlanCard
                     ]}
-                    onPress={() => setSelectedPlan(plan.label)}
+                    onPress={() => setSelectedPlan(plan)}
                 >
                     <View>
                         <Text style={styles.planLabel}>{plan.label}</Text>
-                        <Text style={styles.planDuration}>{plan.duration}</Text>
+                        <Text style={styles.planDuration}>{plan.days} Days</Text>
                     </View>
                     <Text style={styles.planPrice}>Rs.{plan.price}</Text>
                 </TouchableOpacity>
             ))}
 
-            <View
-                style={styles.selectedPlan}
-            >
-                <Text style={styles.selectedText}>Selected Plan : {selectedPlan}</Text>
-                <Text style={styles.selectedText}>Rs.49</Text>
-            </View>
+            {selectedPlan && (
+                <>
+                    <View style={styles.selectedPlan}>
+                        <Text style={styles.selectedText}>
+                            Selected Plan : {selectedPlan.label}
+                        </Text>
+                        <Text style={styles.selectedText}>
+                            Rs.{selectedPlan.price}
+                        </Text>
+                    </View>
 
-            <View style={{ width: "100%", alignItems: "flex-start" }}>
-                <Text style={styles.expireText}>Expire On 30 Nov 2025</Text>
-            </View>
+                    <View style={{ width: "100%", alignItems: "flex-start" }}>
+                        <Text style={styles.expireText}>
+                            Expire On: {calculateExpiryDate(selectedPlan.days)}
+                        </Text>
+                    </View>
+                </>
+            )}
 
-
-            <TouchableOpacity style={{ width: "100%" }} onPress={() => navigation.navigate('Payment')}>
+            <TouchableOpacity style={{ width: "100%" }} onPress={handleNext}>
                 <LinearGradient
-                    colors={['#0081d1ff', '#1bc97bff']}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
+                    colors={["#0081d1ff", "#1bc97bff"]}
                     style={styles.submitBtn}
                 >
                     <Text style={styles.submitText}>NEXT</Text>
                 </LinearGradient>
             </TouchableOpacity>
+
         </ScrollView>
     );
 }
@@ -83,7 +152,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     backContainer: {
-         width: '100%',
+        width: '100%',
         paddingVertical: 10,
         alignItems: 'flex-start',
         // marginBottom: 10,
@@ -172,7 +241,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        marginBottom:50
+        marginBottom: 50
     },
     submitText: {
         color: '#fff',

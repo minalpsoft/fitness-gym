@@ -3,11 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'rea
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function BuyPlan({ navigation }) {
+export default function BuyPlan({ navigation,route }) {
+     const {
+        planName,
+        price,
+        expiryDate
+    } = route.params || {};
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.backContainer}>
-                <TouchableOpacity onPress={() => navigation.navigate('Payment')}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back-outline" size={28} color="#20e880ff" />
                 </TouchableOpacity>
             </View>
@@ -26,7 +32,7 @@ export default function BuyPlan({ navigation }) {
             <View style={styles.planCard}>
                 <View style={{ width: "50%" }}>
                     <Text style={styles.planLabel}>Current Plan</Text>
-                    <Text style={styles.planValue}>1 Month</Text>
+                    <Text style={styles.planValue}>{planName}</Text>
 
                     <Text style={[styles.planLabel, { marginTop: 10 }]}>Status</Text>
                     <View style={styles.statusRow}>
@@ -37,7 +43,7 @@ export default function BuyPlan({ navigation }) {
 
                 <View style={{ width: "50%", alignItems: "flex-end" }}>
                     <Text style={styles.expireText}>Expiry Date</Text>
-                    <Text style={[styles.expireText, { marginTop: 4, color: "white" }]}>30 Nov 2025</Text>
+                    <Text style={[styles.expireText, { marginTop: 4, color: "white" }]}>{expiryDate}</Text>
                 </View>
             </View>
 

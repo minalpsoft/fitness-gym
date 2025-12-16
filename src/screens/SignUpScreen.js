@@ -149,11 +149,10 @@ export default function SignUpScreen({ navigation }) {
             mobile,
             email,
             password,
-            photoBase64: employeePhotoBase64,
-            base64format: "jpg"
+            photoBase64: employeePhotoBase64
         };
 
-        console.log("Payload being sent:", payload);
+        console.log("Payload:", payload);
 
         try {
             const res = await fetch(`${API_BASE_URL}addUser`, {

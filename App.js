@@ -7,7 +7,7 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import Dashboard from './src/screens/Dashboard';
 import ChoosePlan from './src/screens/ChoosePlan';
-import Payment from './src/screens/Payment';
+import MakePayment from './src/screens/MakePayment';
 import BuyPlan from './src/screens/BuyPlan';
 import UpdateProfile from './src/screens/UpdateProfile';
 import PaymentHistory from './src/screens/PaymentHistory';
@@ -46,7 +46,7 @@ export default function App() {
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="Dashboard" component={Dashboard} />
         <Stack.Screen name="ChoosePlan" component={ChoosePlan} />
-        <Stack.Screen name="Payment" component={Payment} />
+        <Stack.Screen name="MakePayment" component={MakePayment} />
         <Stack.Screen name="BuyPlan" component={BuyPlan} />
         <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
         <Stack.Screen name="PaymentHistory" component={PaymentHistory} />
