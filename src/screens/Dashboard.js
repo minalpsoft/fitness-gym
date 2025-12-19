@@ -1,9 +1,47 @@
 import React from 'react';
+import { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Dashboard({ navigation }) {
+    const [plan, setPlan] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPlan = async () => {
+            try {
+                const res = await axios.get(
+                    `http://10.74.161.185:3000/subscription/active/${userId}`
+                );
+
+                setPlan(res.data);
+            } catch (err) {
+                setPlan(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPlan();
+    }, []);
+
+    // referral code below
+    const initReferralCode = async () => {
+        const existingCode = await AsyncStorage.getItem('referralCode');
+
+        if (!existingCode) {
+            const newCode = 'FITG' + Math.floor(1000 + Math.random() * 9000);
+            await AsyncStorage.setItem('referralCode', newCode);
+        }
+    };
+    useEffect(() => {
+        initReferralCode();
+    }, []);
+
+
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.backContainer}>
@@ -11,39 +49,61 @@ export default function Dashboard({ navigation }) {
                     <Ionicons name="arrow-back-outline" size={28} color="#20e880ff" />
                 </TouchableOpacity>
             </View>
-           
+
             <View style={styles.logoContainer}>
-                           <Image
-                               source={require('../../assets/gym_logo.jpg')}
-                               style={styles.logo}
-                               resizeMode="contain"
-                           />
-                       </View>
+                <Image
+                    source={require('../../assets/gym_logo.jpg')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
+            </View>
 
             <Text style={styles.welcomeText}>Hi, Mitesh!</Text>
             <Text style={styles.subtitle}>Welcome back to motivated Fitness GYM</Text>
 
             <View style={styles.planCard}>
                 <Text style={styles.planLabel}>Current Plan</Text>
-                <Text style={styles.planValue}>NA</Text>
+                <Text style={styles.planValue}>
+                    {plan ? plan.planName : "No Active Plan"}
+                </Text>
 
                 <Text style={[styles.planLabel, { marginTop: 10 }]}>Status</Text>
-                <View style={styles.statusRow}>
-                    <Ionicons name="ellipse" size={14} color="green" />
-                    <Text style={styles.statusText}>Inactive</Text>
-                </View>
+
+                {!loading && (
+                    <View style={styles.statusRow}>
+                        <Ionicons
+                            name="ellipse"
+                            size={14}
+                            color={plan?.status === "ACTIVE" ? "green" : "red"}
+                        />
+                        <Text style={styles.statusText}>
+                            {plan?.status === "ACTIVE" ? "Active" : "Inactive"}
+                        </Text>
+                    </View>
+                )}
+
+                {plan && (
+                    <Text style={{ color: "#aaa", marginTop: 5 }}>
+                        Expiry: {new Date(plan.expiryDate).toDateString()}
+                    </Text>
+                )}
+
             </View>
 
-            <TouchableOpacity style={{ width: '100%' }} onPress={() => navigation.navigate('ChoosePlan')}>
-                <LinearGradient
-                    colors={['#0081d1', '#1bc97b']}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.buyBtn}
+            {plan?.status !== "ACTIVE" && (
+                <TouchableOpacity
+                    style={{ width: '100%' }}
+                    onPress={() => navigation.navigate('ChoosePlan')}
                 >
-                    <Text style={styles.buyBtnText}>BUY PLAN</Text>
-                </LinearGradient>
-            </TouchableOpacity>
+                    <LinearGradient
+                        colors={['#0081d1', '#1bc97b']}
+                        style={styles.buyBtn}
+                    >
+                        <Text style={styles.buyBtnText}>BUY PLAN</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+            )}
+
 
             <View style={styles.menu}>
                 <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Dashboard')}>
@@ -76,7 +136,7 @@ export default function Dashboard({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-     backContainer: {
+    backContainer: {
         width: '100%',
         paddingVertical: 10,
         alignItems: 'flex-start',

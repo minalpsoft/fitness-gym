@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import plansJson from "./plansJson.json"
-// const API_BASE_URL = Constants.expoConfig.extra.API_BASE_URL;
+import { Alert } from "react-native";
+// import plansJson from "./plansJson.json"
+const API_URL = "http://10.74.161.185:3000/chooseplan";
 
 export default function ChoosePlan({ navigation }) {
     const [plans, setPlans] = useState([]);
@@ -14,24 +15,17 @@ export default function ChoosePlan({ navigation }) {
         fetchPlans();
     }, []);
 
-    //     const fetchPlans = async () => {
+    //  const fetchPlans = async () => {
     //     try {
-    //         const res = await fetch(`${API_BASE_URL}getPlans`, {
-    //             method: "GET",
-    //             headers: {
-    //                 "Content-Type": "application/json"
-    //             }
-    //         });
-
-    //         const response = await res.json();
+    //         const response = plansJson;
 
     //         if (response.errCode !== 0) {
-    //             Alert.alert("Error", response.msg || "Failed to load plans");
+    //             Alert.alert("Error", "Failed to load plans");
     //             return;
     //         }
 
     //         setPlans(response.data);
-    //         setSelectedPlan(response.data[0]); 
+    //         setSelectedPlan(response.data[0]);
     //     } catch (err) {
     //         Alert.alert("Error", "Something went wrong");
     //     }
@@ -39,7 +33,8 @@ export default function ChoosePlan({ navigation }) {
 
     const fetchPlans = async () => {
         try {
-            const response = plansJson;
+            const res = await fetch(API_URL);
+            const response = await res.json();
 
             if (response.errCode !== 0) {
                 Alert.alert("Error", "Failed to load plans");
@@ -49,9 +44,11 @@ export default function ChoosePlan({ navigation }) {
             setPlans(response.data);
             setSelectedPlan(response.data[0]);
         } catch (err) {
-            Alert.alert("Error", "Something went wrong");
+            console.log(err);
+            Alert.alert("Error", "Server not reachable");
         }
     };
+
 
     const calculateExpiryDate = (days) => {
         const date = new Date();
@@ -73,7 +70,7 @@ export default function ChoosePlan({ navigation }) {
             expiryDate: calculateExpiryDate(selectedPlan.days)
         };
 
-        console.log("Selected Plan Payload:", payload);
+        // console.log("Selected Plan Payload:", payload);
         navigation.navigate("MakePayment", payload);
     };
 

@@ -8,7 +8,7 @@ export default function MakePayment({ navigation, route }) {
 
     const {
         planName,
-        price,
+        price, days,
         expiryDate
     } = route.params || {};
     const [coupon, setCoupon] = useState("");
@@ -79,7 +79,7 @@ export default function MakePayment({ navigation, route }) {
                         placeholderTextColor="#777"
                         value={coupon}
                         onChangeText={setCoupon}
-                        editable={!couponApplied}
+                    // editable={!couponApplied}
                     />
 
                     {/* <TouchableOpacity onPress={handleApplyCoupon}>
@@ -105,9 +105,10 @@ export default function MakePayment({ navigation, route }) {
 
 
             <TouchableOpacity
-                style={{ width: "100%" }} onPress={() => navigation.navigate("BuyPlan", {
-                    planName, price, expiryDate,
-                    couponCode: coupon, discount, finalAmount
+                style={{ width: "100%" }} onPress={() => navigation.navigate("PaypalPayment", {
+                    planName,
+                    price, days,
+                    expiryDate,
                 })} >
 
                 <LinearGradient

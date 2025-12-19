@@ -1,21 +1,29 @@
 import React from 'react';
+import { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Share } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ReferralCode({ navigation }) {
 
-    const shareReferral = async () => {
-        try {
-            await Share.share({
-                message: "Hey! Use my referral code: FITG1639 to join the Fitness Gym App!!",
-            });
-        } catch (error) {
-            console.log(error);
-        }
+  const [referralCode, setReferralCode] = useState('');
+
+  useEffect(() => {
+    const loadCode = async () => {
+      const code = await AsyncStorage.getItem('referralCode');
+      setReferralCode(code);
     };
 
+    loadCode();
+  }, []);
+
+  const shareReferral = async () => {
+    await Share.share({
+      message: `Hey! Use my referral code ${referralCode} to join the Fitness Gym App 💪`,
+    });
+  };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -39,7 +47,7 @@ export default function ReferralCode({ navigation }) {
             <View style={styles.planCard}>
                 <View style={{ width: "50%" }}>
                     <Text style={styles.planLabel}>My Referral Code</Text>
-                    <Text style={styles.planValue}>FITG1639</Text>
+                   <Text style={styles.planValue}>{referralCode || 'Loading...'}</Text>
                 </View>
 
             </View>
