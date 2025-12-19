@@ -5,6 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from "react-native";
 // import plansJson from "./plansJson.json"
 const API_URL = "http://10.74.161.185:3000/chooseplan";
+// const API_URL = Constants.expoConfig.extra.API_URL;
+import Constants from "expo-constants";
 
 export default function ChoosePlan({ navigation }) {
     const [plans, setPlans] = useState([]);
@@ -14,22 +16,6 @@ export default function ChoosePlan({ navigation }) {
     useEffect(() => {
         fetchPlans();
     }, []);
-
-    //  const fetchPlans = async () => {
-    //     try {
-    //         const response = plansJson;
-
-    //         if (response.errCode !== 0) {
-    //             Alert.alert("Error", "Failed to load plans");
-    //             return;
-    //         }
-
-    //         setPlans(response.data);
-    //         setSelectedPlan(response.data[0]);
-    //     } catch (err) {
-    //         Alert.alert("Error", "Something went wrong");
-    //     }
-    // };
 
     const fetchPlans = async () => {
         try {
@@ -103,7 +89,7 @@ export default function ChoosePlan({ navigation }) {
                 >
                     <View>
                         <Text style={styles.planLabel}>{plan.label}</Text>
-                        <Text style={styles.planDuration}>{plan.days} Days</Text>
+                        <Text style={styles.planDuration}>{plan.days} Day</Text>
                     </View>
                     <Text style={styles.planPrice}>Rs.{plan.price}</Text>
                 </TouchableOpacity>

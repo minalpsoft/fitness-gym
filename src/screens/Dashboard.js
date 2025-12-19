@@ -27,7 +27,6 @@ export default function Dashboard({ navigation }) {
         fetchPlan();
     }, []);
 
-    // referral code below
     const initReferralCode = async () => {
         const existingCode = await AsyncStorage.getItem('referralCode');
 
