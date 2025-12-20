@@ -2,10 +2,44 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// import Constants from "expo-constants";
+// const API_BASE_URL = Constants.expoConfig.extra.API_BASE_URL;
 
 export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const API_BASE_URL = "http://10.74.161.185:3000/";
+
+    const handleLogin = async () => {
+        if (!email || !password) {
+            alert("Email and password required");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE_URL}auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "Login failed");
+                return;
+            }
+
+            // ✅ Store userId for subscription & payment
+            await AsyncStorage.setItem("userId", String(data.userId));
+
+            navigation.replace("Dashboard");
+        } catch (err) {
+            alert("Something went wrong");
+        }
+    };
+
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -35,7 +69,10 @@ export default function LoginScreen({ navigation }) {
                 <TextInput placeholder="Enter Password" placeholderTextColor="#aaa" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
             </View>
 
-            <TouchableOpacity style={{ width: "100%" }} onPress={() => navigation.navigate('Dashboard')}>
+            <TouchableOpacity style={{ width: "100%" }}
+                // onPress={() => navigation.navigate('Dashboard')}
+                onPress={handleLogin}
+            >
                 <LinearGradient
                     colors={['#0081d1ff', '#1bc97bff']}
                     start={{ x: 0.5, y: 0 }}

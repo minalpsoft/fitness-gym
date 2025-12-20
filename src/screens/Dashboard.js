@@ -4,28 +4,66 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'rea
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from "axios";
+const API_URL = "http://10.74.161.185:3000";
 
 export default function Dashboard({ navigation }) {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
-        const fetchPlan = async () => {
-            try {
-                const res = await axios.get(
-                    `http://10.74.161.185:3000/subscription/active/${userId}`
-                );
-
-                setPlan(res.data);
-            } catch (err) {
-                setPlan(null);
-            } finally {
-                setLoading(false);
+        const loadUser = async () => {
+            const storedUserId = await AsyncStorage.getItem("userId");
+            if (storedUserId) {
+                setUserId(Number(storedUserId));
             }
         };
-
-        fetchPlan();
+        loadUser();
     }, []);
+
+    const fetchPlan = async () => {
+        try {
+            setLoading(true);
+
+            const res = await axios.get(
+                `${API_URL}/subscription/active/${userId}`
+            );
+
+            let plans = res.data;
+
+            // ✅ React-Native safety
+            if (typeof plans === "string") {
+                plans = JSON.parse(plans);
+            }
+
+            console.log("PARSED PLANS:", plans);
+
+            if (Array.isArray(plans) && plans.length > 0) {
+                setPlan(plans[0]);
+            } else {
+                setPlan(null);
+            }
+        } catch (err) {
+            console.error("Failed to fetch subscription", err);
+            setPlan(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    useEffect(() => {
+        if (userId !== null) {
+            fetchPlan();
+        }
+    }, [userId]);
+
+
+    // useEffect(() => {
+    //     console.log("PLAN STATE UPDATED:", plan);
+    // }, [plan]);
+
 
     const initReferralCode = async () => {
         const existingCode = await AsyncStorage.getItem('referralCode');
@@ -60,36 +98,35 @@ export default function Dashboard({ navigation }) {
             <Text style={styles.welcomeText}>Hi, Mitesh!</Text>
             <Text style={styles.subtitle}>Welcome back to motivated Fitness GYM</Text>
 
-            <View style={styles.planCard}>
+            <View style={styles.planCard} key={plan?.id || "no-plan"}>
                 <Text style={styles.planLabel}>Current Plan</Text>
                 <Text style={styles.planValue}>
-                    {plan ? plan.planName : "No Active Plan"}
+                    {loading ? "Loading..." : plan ? plan.plan_name : "No Active Plan"}
                 </Text>
 
                 <Text style={[styles.planLabel, { marginTop: 10 }]}>Status</Text>
 
-                {!loading && (
+                {loading ? (
+                    <Text style={{ color: "#aaa" }}>Loading...</Text>
+                ) : plan && plan.status === "active" ? (
                     <View style={styles.statusRow}>
-                        <Ionicons
-                            name="ellipse"
-                            size={14}
-                            color={plan?.status === "ACTIVE" ? "green" : "red"}
-                        />
-                        <Text style={styles.statusText}>
-                            {plan?.status === "ACTIVE" ? "Active" : "Inactive"}
-                        </Text>
+                        <Ionicons name="ellipse" size={14} color="green" />
+                        <Text style={styles.statusText}>Active</Text>
                     </View>
+                ) : (
+                    <Text style={{ color: "red" }}>No Active Subscription</Text>
                 )}
 
-                {plan && (
+                {plan && plan.status === "active" && (
                     <Text style={{ color: "#aaa", marginTop: 5 }}>
-                        Expiry: {new Date(plan.expiryDate).toDateString()}
+                        Expiry: {new Date(plan.end_date).toDateString()}
                     </Text>
                 )}
-
             </View>
 
-            {plan?.status !== "ACTIVE" && (
+
+
+            {!plan || plan.status !== "active" ? (
                 <TouchableOpacity
                     style={{ width: '100%' }}
                     onPress={() => navigation.navigate('ChoosePlan')}
@@ -101,7 +138,12 @@ export default function Dashboard({ navigation }) {
                         <Text style={styles.buyBtnText}>BUY PLAN</Text>
                     </LinearGradient>
                 </TouchableOpacity>
-            )}
+            ) : null}
+
+            {/* 
+            <Text style={{ color: "yellow", fontSize: 11 }}>
+                DEBUG: {JSON.stringify(plan)}
+            </Text> */}
 
 
             <View style={styles.menu}>

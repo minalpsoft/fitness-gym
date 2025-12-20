@@ -8,8 +8,7 @@ import Constants from "expo-constants";
 const API_BASE_URL = Constants.expoConfig.extra.API_BASE_URL;
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
-
-
+const MY_API = "http://10.74.161.185:3000/";
 
 
 export default function SignUpScreen({ navigation }) {
@@ -49,26 +48,40 @@ export default function SignUpScreen({ navigation }) {
     };
 
 
-    let lastGeneratedId = null;
+    // let lastGeneratedId = null;
+
+    // const getNextIncrementalId = async () => {
+    //     if (lastGeneratedId !== null) {
+    //         lastGeneratedId += 1;
+    //         return lastGeneratedId;
+    //     }
+
+    //     const users = await getAllUsers();
+    //     console.log("Fetched users:", users);
+
+    //     const filteredUsers = users.filter(u => parseInt(u.enrollId) < 1000);
+    //     const maxId = filteredUsers.length
+    //         ? Math.max(...filteredUsers.map(u => parseInt(u.enrollId)))
+    //         : 0;
+
+    //     lastGeneratedId = maxId + 1;
+    //     return lastGeneratedId;
+    // };
 
     const getNextIncrementalId = async () => {
-        if (lastGeneratedId !== null) {
-            lastGeneratedId += 1;
-            return lastGeneratedId;
+        const users = await getAllUsers();
+
+        if (!users.length) {
+            return Date.now() % 100000;
         }
 
-        const users = await getAllUsers();
-        console.log("Fetched users:", users);
+        const validIds = users
+            .map(u => Number(u.enrollId))
+            .filter(id => !isNaN(id));
 
-        const filteredUsers = users.filter(u => parseInt(u.enrollId) < 1000);
-        const maxId = filteredUsers.length
-            ? Math.max(...filteredUsers.map(u => parseInt(u.enrollId)))
-            : 0;
-
-        lastGeneratedId = maxId + 1;
-        return lastGeneratedId;
+        const maxId = Math.max(...validIds);
+        return maxId + 1;
     };
-
 
 
     const BASE64_LIMIT = 300 * 1024;
@@ -104,7 +117,7 @@ export default function SignUpScreen({ navigation }) {
 
             let clean = manipulated.base64
                 .replace(/^data:image\/[a-zA-Z]+;base64,/, "")
-                .replace(/[^0-9A-Za-z+/=]/g, "")  
+                .replace(/[^0-9A-Za-z+/=]/g, "")
                 .replace(/(\r\n|\n|\r)/gm, "")
                 .trim();
 
@@ -126,20 +139,82 @@ export default function SignUpScreen({ navigation }) {
     };
 
 
+    // const handleSignUp = async () => {
+    //     if (!employeePhotoBase64) {
+    //         Alert.alert("Missing Face ID", "Please register your Face Image first");
+    //         return;
+    //     }
+
+    //     // console.log("Final base64 length:", employeePhotoBase64.length);
+    //     // console.log("Starts with:", employeePhotoBase64.substring(0, 20));
+    //     // console.log("Ends with:", employeePhotoBase64.slice(-20));
+
+
+    //     const uniqueId = await getNextIncrementalId();
+
+    //     const payload = {
+    //         apiToken: "8d6bea78-a7ad-4eee-bcf7-03724af319fc",
+    //         cusId: 389,
+    //         departmentId: 836,
+    //         enrollId: Number(uniqueId),
+    //         staffNumber: String(uniqueId),
+    //         name,
+    //         mobile,
+    //         email,
+    //         password,
+    //         photoBase64: employeePhotoBase64
+    //     };
+
+    //     console.log("Payload:", payload);
+
+    //     try {
+    //         const res = await fetch(`${API_BASE_URL}addUser`, {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify(payload)
+    //         });
+
+    //         const data = await res.json();
+    //         console.log("Response:", data);
+
+    //         if (data.errCode !== 0) {
+    //             Alert.alert("Error", data.msg || "Signup failed");
+    //             return;
+    //         }
+
+    //         /* ✅ STEP 1: Import user into GYM backend */
+    //         await fetch(`${API_BASE_URL}/auth/import-user`, {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({
+    //                 clientUserId: uniqueId,      // or data.data.enrollId
+    //                 name,
+    //                 email,
+    //                 mobile,
+    //                 password,                    // plain → backend will hash
+    //                 dob
+    //             })
+    //         });
+
+    //         /* ✅ STEP 2: Success UI */
+    //         Alert.alert("Success", "Account created successfully");
+    //         navigation.navigate("LoginScreen", { refreshUsers: true });
+
+
+    //     } catch (err) {
+    //         Alert.alert("Error", "Something went wrong");
+    //     }
+    // };
+
     const handleSignUp = async () => {
         if (!employeePhotoBase64) {
             Alert.alert("Missing Face ID", "Please register your Face Image first");
             return;
         }
 
-        console.log("Final base64 length:", employeePhotoBase64.length);
-        console.log("Starts with:", employeePhotoBase64.substring(0, 20));
-        console.log("Ends with:", employeePhotoBase64.slice(-20));
-
-
         const uniqueId = await getNextIncrementalId();
 
-        const payload = {
+        const clientPayload = {
             apiToken: "8d6bea78-a7ad-4eee-bcf7-03724af319fc",
             cusId: 389,
             departmentId: 836,
@@ -152,25 +227,57 @@ export default function SignUpScreen({ navigation }) {
             photoBase64: employeePhotoBase64
         };
 
-        console.log("Payload:", payload);
-
         try {
             const res = await fetch(`${API_BASE_URL}addUser`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(clientPayload)
             });
 
             const data = await res.json();
-            console.log("Response:", data);
 
             if (data.errCode !== 0) {
                 Alert.alert("Error", data.msg || "Signup failed");
                 return;
             }
 
+            // await fetch(`${MY_API}auth/import-user`, {
+            //     method: "POST",
+            //     headers: { "Content-Type": "application/json" },
+            //     body: JSON.stringify({
+            //         clientUserId: uniqueId,
+            //         name,
+            //         email,
+            //         mobile,
+            //         password,       
+            //         dob
+            //     })
+            // });
+
+            const importRes = await fetch(`${MY_API}auth/import-user`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clientUserId: uniqueId,
+                    name,
+                    email,
+                    mobile,
+                    password,
+                    dob
+                })
+            });
+
+            const importData = await importRes.json();
+            console.log("Import result:", importData);
+
+            if (!importRes.ok) {
+                Alert.alert("Error", importData.message || "User import failed");
+                return;
+            }
+
+
             Alert.alert("Success", "Account created successfully");
-            navigation.navigate("LoginScreen", { refreshUsers: true });
+            navigation.navigate("LoginScreen");
 
         } catch (err) {
             Alert.alert("Error", "Something went wrong");
