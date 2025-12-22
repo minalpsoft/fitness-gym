@@ -21,24 +21,37 @@ export default function LoginScreen({ navigation }) {
             const res = await fetch(`${API_BASE_URL}auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await res.json();
+            console.log("LOGIN RESPONSE:", data);
 
             if (!res.ok) {
                 alert(data.message || "Login failed");
                 return;
             }
 
-            // ✅ Store userId for subscription & payment
-            await AsyncStorage.setItem("userId", String(data.userId));
+            if (!data.clientUserId) {
+                // alert("Login succeeded but clientUserId missing");
+                alert("Login failed! Cannot find Client Id");
+                return;
+            }
+
+            await AsyncStorage.setItem(
+                "clientUserId",
+                String(data.clientUserId)
+            );
+
 
             navigation.replace("Dashboard");
+
         } catch (err) {
+            console.log(err);
             alert("Something went wrong");
         }
     };
+
 
 
     return (

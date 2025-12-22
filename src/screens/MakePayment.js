@@ -33,6 +33,33 @@ export default function MakePayment({ navigation, route }) {
     //     }
     // };
 
+   const handleLogout = () => {
+    Alert.alert(
+        "Logout",
+        "Are you sure you want to logout?",
+        [
+            {
+                text: "Cancel",
+                style: "cancel",
+            },
+            {
+                text: "Logout",
+                style: "destructive",
+                onPress: async () => {
+                    await AsyncStorage.removeItem("clientUserId");
+                    await AsyncStorage.removeItem("referralCode"); 
+
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: "LoginScreen" }], 
+                    });
+                },
+            },
+        ],
+        { cancelable: true }
+    );
+};
+  
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.backContainer}>
@@ -142,7 +169,7 @@ export default function MakePayment({ navigation, route }) {
                     <Text style={styles.menuText}>My Referral Code</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={20} color="green" />
                     <Text style={styles.menuText}>Logout</Text>
                 </TouchableOpacity>

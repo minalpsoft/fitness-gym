@@ -47,27 +47,6 @@ export default function SignUpScreen({ navigation }) {
         }
     };
 
-
-    // let lastGeneratedId = null;
-
-    // const getNextIncrementalId = async () => {
-    //     if (lastGeneratedId !== null) {
-    //         lastGeneratedId += 1;
-    //         return lastGeneratedId;
-    //     }
-
-    //     const users = await getAllUsers();
-    //     console.log("Fetched users:", users);
-
-    //     const filteredUsers = users.filter(u => parseInt(u.enrollId) < 1000);
-    //     const maxId = filteredUsers.length
-    //         ? Math.max(...filteredUsers.map(u => parseInt(u.enrollId)))
-    //         : 0;
-
-    //     lastGeneratedId = maxId + 1;
-    //     return lastGeneratedId;
-    // };
-
     const getNextIncrementalId = async () => {
         const users = await getAllUsers();
 
@@ -82,7 +61,6 @@ export default function SignUpScreen({ navigation }) {
         const maxId = Math.max(...validIds);
         return maxId + 1;
     };
-
 
     const BASE64_LIMIT = 300 * 1024;
 
@@ -137,74 +115,6 @@ export default function SignUpScreen({ navigation }) {
 
         Alert.alert("Success", "Photo captured successfully!");
     };
-
-
-    // const handleSignUp = async () => {
-    //     if (!employeePhotoBase64) {
-    //         Alert.alert("Missing Face ID", "Please register your Face Image first");
-    //         return;
-    //     }
-
-    //     // console.log("Final base64 length:", employeePhotoBase64.length);
-    //     // console.log("Starts with:", employeePhotoBase64.substring(0, 20));
-    //     // console.log("Ends with:", employeePhotoBase64.slice(-20));
-
-
-    //     const uniqueId = await getNextIncrementalId();
-
-    //     const payload = {
-    //         apiToken: "8d6bea78-a7ad-4eee-bcf7-03724af319fc",
-    //         cusId: 389,
-    //         departmentId: 836,
-    //         enrollId: Number(uniqueId),
-    //         staffNumber: String(uniqueId),
-    //         name,
-    //         mobile,
-    //         email,
-    //         password,
-    //         photoBase64: employeePhotoBase64
-    //     };
-
-    //     console.log("Payload:", payload);
-
-    //     try {
-    //         const res = await fetch(`${API_BASE_URL}addUser`, {
-    //             method: "POST",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify(payload)
-    //         });
-
-    //         const data = await res.json();
-    //         console.log("Response:", data);
-
-    //         if (data.errCode !== 0) {
-    //             Alert.alert("Error", data.msg || "Signup failed");
-    //             return;
-    //         }
-
-    //         /* ✅ STEP 1: Import user into GYM backend */
-    //         await fetch(`${API_BASE_URL}/auth/import-user`, {
-    //             method: "POST",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify({
-    //                 clientUserId: uniqueId,      // or data.data.enrollId
-    //                 name,
-    //                 email,
-    //                 mobile,
-    //                 password,                    // plain → backend will hash
-    //                 dob
-    //             })
-    //         });
-
-    //         /* ✅ STEP 2: Success UI */
-    //         Alert.alert("Success", "Account created successfully");
-    //         navigation.navigate("LoginScreen", { refreshUsers: true });
-
-
-    //     } catch (err) {
-    //         Alert.alert("Error", "Something went wrong");
-    //     }
-    // };
 
     const handleSignUp = async () => {
         if (!employeePhotoBase64) {
@@ -283,8 +193,6 @@ export default function SignUpScreen({ navigation }) {
             Alert.alert("Error", "Something went wrong");
         }
     };
-
-
 
 
     return (

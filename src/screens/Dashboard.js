@@ -5,18 +5,19 @@ import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-ico
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
+import { Alert } from "react-native";
 const API_URL = "http://10.74.161.185:3000";
 
 export default function Dashboard({ navigation }) {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [userId, setUserId] = useState(null);
+    const [clientUserId, setClientUserId] = useState(null);
 
     useEffect(() => {
         const loadUser = async () => {
-            const storedUserId = await AsyncStorage.getItem("userId");
+            const storedUserId = await AsyncStorage.getItem("clientUserId");
             if (storedUserId) {
-                setUserId(Number(storedUserId));
+                setClientUserId(Number(storedUserId));
             }
         };
         loadUser();
@@ -24,23 +25,14 @@ export default function Dashboard({ navigation }) {
 
     const fetchPlan = async () => {
         try {
-            setLoading(true);
-
             const res = await axios.get(
-                `${API_URL}/subscription/active/${userId}`
+                `${API_URL}/subscription/active/${clientUserId}`
             );
 
-            let plans = res.data;
+            console.log("SUBSCRIPTION RESPONSE:", res.data);
 
-            // ✅ React-Native safety
-            if (typeof plans === "string") {
-                plans = JSON.parse(plans);
-            }
-
-            console.log("PARSED PLANS:", plans);
-
-            if (Array.isArray(plans) && plans.length > 0) {
-                setPlan(plans[0]);
+            if (Array.isArray(res.data) && res.data.length > 0) {
+                setPlan(res.data[0]);
             } else {
                 setPlan(null);
             }
@@ -52,17 +44,15 @@ export default function Dashboard({ navigation }) {
         }
     };
 
-
     useEffect(() => {
-        if (userId !== null) {
+        if (clientUserId !== null) {
+            setLoading(true);
             fetchPlan();
         }
-    }, [userId]);
+        // console.log("USER ID FROM STORAGE:", clientUserId);
 
+    }, [clientUserId]);
 
-    // useEffect(() => {
-    //     console.log("PLAN STATE UPDATED:", plan);
-    // }, [plan]);
 
 
     const initReferralCode = async () => {
@@ -76,6 +66,33 @@ export default function Dashboard({ navigation }) {
     useEffect(() => {
         initReferralCode();
     }, []);
+
+    const handleLogout = () => {
+        Alert.alert(
+            "Logout",
+            "Are you sure you want to logout?",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Logout",
+                    style: "destructive",
+                    onPress: async () => {
+                        await AsyncStorage.removeItem("clientUserId");
+                        await AsyncStorage.removeItem("referralCode");
+
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "LoginScreen" }],
+                        });
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
 
 
 
@@ -99,16 +116,22 @@ export default function Dashboard({ navigation }) {
             <Text style={styles.subtitle}>Welcome back to motivated Fitness GYM</Text>
 
             <View style={styles.planCard} key={plan?.id || "no-plan"}>
+
                 <Text style={styles.planLabel}>Current Plan</Text>
+
                 <Text style={styles.planValue}>
-                    {loading ? "Loading..." : plan ? plan.plan_name : "No Active Plan"}
+                    {loading
+                        ? "Loading..."
+                        : plan
+                            ? plan.plan_name
+                            : "No Active Plan"}
                 </Text>
 
                 <Text style={[styles.planLabel, { marginTop: 10 }]}>Status</Text>
 
                 {loading ? (
                     <Text style={{ color: "#aaa" }}>Loading...</Text>
-                ) : plan && plan.status === "active" ? (
+                ) : plan?.status === "active" ? (
                     <View style={styles.statusRow}>
                         <Ionicons name="ellipse" size={14} color="green" />
                         <Text style={styles.statusText}>Active</Text>
@@ -117,14 +140,12 @@ export default function Dashboard({ navigation }) {
                     <Text style={{ color: "red" }}>No Active Subscription</Text>
                 )}
 
-                {plan && plan.status === "active" && (
+                {!loading && plan?.status === "active" && (
                     <Text style={{ color: "#aaa", marginTop: 5 }}>
                         Expiry: {new Date(plan.end_date).toDateString()}
                     </Text>
                 )}
             </View>
-
-
 
             {!plan || plan.status !== "active" ? (
                 <TouchableOpacity
@@ -139,11 +160,6 @@ export default function Dashboard({ navigation }) {
                     </LinearGradient>
                 </TouchableOpacity>
             ) : null}
-
-            {/* 
-            <Text style={{ color: "yellow", fontSize: 11 }}>
-                DEBUG: {JSON.stringify(plan)}
-            </Text> */}
 
 
             <View style={styles.menu}>
@@ -167,7 +183,7 @@ export default function Dashboard({ navigation }) {
                     <Text style={styles.menuText}>My Referral Code</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={20} color="green" />
                     <Text style={styles.menuText}>Logout</Text>
                 </TouchableOpacity>
