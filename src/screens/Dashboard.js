@@ -12,6 +12,7 @@ export default function Dashboard({ navigation }) {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [clientUserId, setClientUserId] = useState(null);
+    const [userName, setUserName] = useState("");
 
     useEffect(() => {
         const loadUser = async () => {
@@ -53,6 +54,23 @@ export default function Dashboard({ navigation }) {
 
     }, [clientUserId]);
 
+    const fetchUser = async (clientUserId) => {
+        try {
+            const res = await axios.get(`${API_URL}/auth/user/${clientUserId}`);
+            setUserName(res.data.name);
+        } catch (err) {
+            console.error("Failed to fetch user", err);
+        }
+    };
+
+
+    useEffect(() => {
+        if (clientUserId !== null) {
+            setLoading(true);
+            fetchPlan();
+            fetchUser(clientUserId);
+        }
+    }, [clientUserId]);
 
 
     const initReferralCode = async () => {
@@ -112,7 +130,7 @@ export default function Dashboard({ navigation }) {
                 />
             </View>
 
-            <Text style={styles.welcomeText}>Hi, Mitesh!</Text>
+            <Text style={styles.welcomeText}> Hi, {userName || "User"}!</Text>
             <Text style={styles.subtitle}>Welcome back to motivated Fitness GYM</Text>
 
             <View style={styles.planCard} key={plan?.id || "no-plan"}>

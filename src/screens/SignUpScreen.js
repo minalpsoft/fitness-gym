@@ -16,7 +16,7 @@ export default function SignUpScreen({ navigation }) {
     const [mobile, setMobile] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [dob, setDob] = useState('');
+    // const [dob, setDob] = useState('');
     const [showPicker, setShowPicker] = useState(false);
     const [employeePhotoBase64, setEmployeePhotoBase64] = useState("");
     const [isFaceCaptured, setIsFaceCaptured] = useState(false);
@@ -144,25 +144,19 @@ export default function SignUpScreen({ navigation }) {
                 body: JSON.stringify(clientPayload)
             });
 
-            const data = await res.json();
-
-            if (data.errCode !== 0) {
-                Alert.alert("Error", data.msg || "Signup failed");
-                return;
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (e) {
+                console.log("addUser response is not JSON");
             }
 
-            // await fetch(`${MY_API}auth/import-user`, {
-            //     method: "POST",
-            //     headers: { "Content-Type": "application/json" },
-            //     body: JSON.stringify({
-            //         clientUserId: uniqueId,
-            //         name,
-            //         email,
-            //         mobile,
-            //         password,       
-            //         dob
-            //     })
-            // });
+            console.log("ADD USER RESPONSE:", data);
+
+            if (!res.ok || data?.errCode !== 0) {
+                Alert.alert("Error", data?.msg || "Signup failed");
+                return;
+            }
 
             const importRes = await fetch(`${MY_API}auth/import-user`, {
                 method: "POST",
@@ -172,26 +166,38 @@ export default function SignUpScreen({ navigation }) {
                     name,
                     email,
                     mobile,
-                    password,
-                    dob
+                    password
                 })
             });
 
-            const importData = await importRes.json();
+            let importData = null;
+
+            try {
+                importData = await importRes.json();
+            } catch (e) {
+                console.log("Import response is not JSON");
+            }
+
             console.log("Import result:", importData);
 
             if (!importRes.ok) {
-                Alert.alert("Error", importData.message || "User import failed");
+                Alert.alert(
+                    "Error",
+                    importData?.message || "User import failed (backend error)"
+                );
                 return;
             }
+
 
 
             Alert.alert("Success", "Account created successfully");
             navigation.navigate("LoginScreen");
 
         } catch (err) {
-            Alert.alert("Error", "Something went wrong");
+            console.error("SIGNUP ERROR 👉", err);
+            Alert.alert("Error", err.message || "Something went wrong");
         }
+
     };
 
 
@@ -228,7 +234,7 @@ export default function SignUpScreen({ navigation }) {
                 <TextInput placeholder="Password" placeholderTextColor="#aaa" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
             </View>
 
-            <View style={styles.inputWrapper}>
+            {/* <View style={styles.inputWrapper}>
                 <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowPicker(true)}>
                     <TextInput
                         placeholder="Date of birth"
@@ -254,15 +260,7 @@ export default function SignUpScreen({ navigation }) {
                         onChange={onChange}
                     />
                 )}
-            </View>
-
-            {/* <TouchableOpacity style={styles.faceBox} onPress={openCamera}>
-                <Ionicons name="happy-outline" size={32} color="#00e676" />
-                <View>
-                    <Text style={styles.faceTitle}>Register Face ID</Text>
-                    <Text style={styles.faceSubtitle}>Use your face to access gym securely</Text>
-                </View>
-            </TouchableOpacity> */}
+            </View> */}
 
 
             <TouchableOpacity style={styles.faceBox}
@@ -406,7 +404,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         color: '#aaa',
         fontFamily: 'Poppins_400Regular',
-        marginBottom: 50
+        marginBottom: 250
     },
     loginLink: {
         color: '#1691c2ff',

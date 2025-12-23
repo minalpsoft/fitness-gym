@@ -1,29 +1,86 @@
 import React from 'react';
 import { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Share } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from "axios";
+const API_URL = "http://10.74.161.185:3000";
 
 export default function ReferralCode({ navigation }) {
 
-  const [referralCode, setReferralCode] = useState('');
+    const [referralCode, setReferralCode] = useState('');
+    const [userName, setUserName] = useState("");
+    const [clientUserId, setClientUserId] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadCode = async () => {
-      const code = await AsyncStorage.getItem('referralCode');
-      setReferralCode(code);
+
+    const shareReferral = async () => {
+        await Share.share({
+            message: `Hey! Use my referral code ${referralCode} to join the Fitness Gym App 💪`,
+        });
+    };
+    
+
+    // show username
+    useEffect(() => {
+        const loadUser = async () => {
+            const storedUserId = await AsyncStorage.getItem("clientUserId");
+            if (storedUserId) {
+                setClientUserId(Number(storedUserId));
+            }
+        };
+        loadUser();
+    }, []);
+
+     const fetchUser = async (clientUserId) => {
+        try {
+            const res = await axios.get(`${API_URL}/auth/user/${clientUserId}`);
+            setUserName(res.data.name);
+            setReferralCode(res.data.referral_code);
+        } catch (err) {
+            console.error("Failed to fetch user", err);
+        }
     };
 
-    loadCode();
-  }, []);
 
-  const shareReferral = async () => {
-    await Share.share({
-      message: `Hey! Use my referral code ${referralCode} to join the Fitness Gym App 💪`,
-    });
-  };
+    useEffect(() => {
+        if (clientUserId !== null) {
+            setLoading(true);
+            // fetchPlan();
+            fetchUser(clientUserId);
+        }
+    }, [clientUserId]);
+
+
+    // logout
+    const handleLogout = () => {
+        Alert.alert(
+            "Logout",
+            "Are you sure you want to logout?",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Logout",
+                    style: "destructive",
+                    onPress: async () => {
+                        await AsyncStorage.removeItem("clientUserId");
+                        await AsyncStorage.removeItem("referralCode");
+
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "LoginScreen" }],
+                        });
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -41,13 +98,13 @@ export default function ReferralCode({ navigation }) {
                 />
             </View>
 
-            <Text style={styles.welcomeText}>Hi, Mitesh!</Text>
+            <Text style={styles.welcomeText}> Hi, {userName || "User"}!</Text>
             {/* <Text style={styles.subtitle}>Welcome back to motivated Fitness GYM</Text> */}
 
             <View style={styles.planCard}>
                 <View style={{ width: "50%" }}>
                     <Text style={styles.planLabel}>My Referral Code</Text>
-                   <Text style={styles.planValue}>{referralCode || 'Loading...'}</Text>
+                    <Text style={styles.planValue}>{referralCode || 'Loading...'}</Text>
                 </View>
 
             </View>
@@ -63,6 +120,7 @@ export default function ReferralCode({ navigation }) {
                     <Text style={styles.buyBtnText}>SHARE</Text>
                 </LinearGradient>
             </TouchableOpacity>
+
 
             <View style={styles.menu}>
                 <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Dashboard')}>
@@ -85,7 +143,7 @@ export default function ReferralCode({ navigation }) {
                     <Text style={styles.menuText}>My Referral Code</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={20} color="green" />
                     <Text style={styles.menuText}>Logout</Text>
                 </TouchableOpacity>

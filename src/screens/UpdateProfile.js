@@ -1,35 +1,127 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
+import React, { useState,useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image,Alert } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Platform } from "react-native";
+// import DateTimePicker from "@react-native-community/datetimepicker";
+// import { Platform } from "react-native";
+import Constants from "expo-constants";
+const API_BASE_URL = Constants.expoConfig.extra.API_BASE_URL;
+// const MY_API = Constants.expoConfig.extra.MY_API;
+const MY_API = "http://10.74.161.185:3000/";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function UpdateProfile({ navigation }) {
+export default function UpdateProfile({ navigation, route }) {
     const [fullName, setFullName] = useState('');
     const [mobile, setMobile] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [dob, setDob] = useState('');
-    const [showPicker, setShowPicker] = useState(false);
+    // const [dob, setDob] = useState('');
+    // const [showPicker, setShowPicker] = useState(false);
 
-    const onChange = (event, selectedDate) => {
-        setShowPicker(false);
-        if (selectedDate) {
-            let d = selectedDate;
-            let final = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-            setDob(final);
+const [clientUserId, setClientUserId] = useState(null);
+
+useEffect(() => {
+    const loadUserId = async () => {
+        const id = await AsyncStorage.getItem("clientUserId");
+        if (id) {
+            setClientUserId(Number(id));
+        } else {
+            Alert.alert("Error", "Client User ID missing");
         }
     };
 
+    loadUserId();
+}, []);
+
+    // const onChange = (event, selectedDate) => {
+    //     setShowPicker(false);
+    //     if (selectedDate) {
+    //         let d = selectedDate;
+    //         let final = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    //         setDob(final);
+    //     }
+    // };
+
+
+    const handleUpdateProfile = async () => {
+        if (!clientUserId) {
+            Alert.alert("Error", "Client User ID missing");
+            return;
+        }
+
+        console.log("UPDATE BUTTON CLICKED");
+
+        const clientPayload = {
+            apiToken: "8d6bea78-a7ad-4eee-bcf7-03724af319fc",
+            cusId: 389,
+            departmentId: 836,
+            enrollId: clientUserId,
+            name: fullName,
+            mobile,
+            email,
+            password
+        };
+
+        try {
+            // 1️⃣ CLIENT DB UPDATE
+            const res = await fetch(`${API_BASE_URL}updateUser`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(clientPayload)
+            });
+
+            const data = await res.json();
+            console.log("CLIENT UPDATE RESPONSE:", data);
+
+            if (data.errCode !== 0) {
+                Alert.alert("Error", data.msg || "Client update failed");
+                return;
+            }
+
+            // 2️⃣ LOGIN DB UPDATE
+            const myRes = await fetch(`${MY_API}auth/update-user`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clientUserId,
+                    name: fullName,
+                    email,
+                    mobile,
+                    password
+                })
+            });
+
+            console.log("LOGIN UPDATE STATUS:", myRes.status);
+
+            if (!myRes.ok) {
+                Alert.alert("Warning", "Client updated, login update failed");
+                return;
+            }
+
+            Alert.alert("Success", "Profile updated successfully");
+            navigation.navigate("Dashboard");
+
+        } catch (err) {
+            console.error("UPDATE ERROR:", err);
+            Alert.alert("Error", "Something went wrong");
+        }
+    };
+
+useEffect(() => {
+    if (!clientUserId) {
+        console.warn("clientUserId missing in UpdateProfile screen");
+    }
+}, []);
+
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
-              <View style={styles.backContainer}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-                                <Ionicons name="arrow-back-outline" size={28} color="#20e880ff" />
-                            </TouchableOpacity>
-                        </View>
-            
+            <View style={styles.backContainer}>
+                <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                    <Ionicons name="arrow-back-outline" size={28} color="#20e880ff" />
+                </TouchableOpacity>
+            </View>
+
             <View style={styles.logoContainer}>
                 <Image
                     source={require('../../assets/gym_logo.jpg')}
@@ -61,7 +153,7 @@ export default function UpdateProfile({ navigation }) {
                 <TextInput placeholder="Password" placeholderTextColor="#aaa" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
             </View>
 
-            <View style={styles.inputWrapper}>
+            {/* <View style={styles.inputWrapper}>
                 <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowPicker(true)}>
                     <TextInput
                         placeholder="Date of birth"
@@ -87,9 +179,9 @@ export default function UpdateProfile({ navigation }) {
                         onChange={onChange}
                     />
                 )}
-            </View>
+            </View> */}
 
-            <TouchableOpacity style={{ width: "100%" }} onPress={() => navigation.navigate('LoginScreen')}>
+            <TouchableOpacity style={{ width: "100%" }} onPress={handleUpdateProfile}>
                 <LinearGradient
                     colors={['#0081d1ff', '#1bc97bff']}
                     start={{ x: 0.5, y: 0 }}
@@ -106,7 +198,7 @@ export default function UpdateProfile({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-     backContainer: {
+    backContainer: {
         width: '100%',
         paddingVertical: 10,
         alignItems: 'flex-start',
@@ -134,7 +226,7 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         marginLeft: 10,
         fontFamily: 'Poppins_400Regular',
-        marginBottom:20
+        marginBottom: 20
     },
     subtitle: {
         color: '#aaa',
@@ -197,8 +289,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: "center",
         justifyContent: "center",
-        marginTop:20,
-        marginBottom:50
+        marginTop: 20,
+        marginBottom: 230
     },
     submitText: {
         color: '#fff',
