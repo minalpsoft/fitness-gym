@@ -1,5 +1,5 @@
-import React, { useState,useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image,Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 // import DateTimePicker from "@react-native-community/datetimepicker";
@@ -14,24 +14,54 @@ export default function UpdateProfile({ navigation, route }) {
     const [fullName, setFullName] = useState('');
     const [mobile, setMobile] = useState('');
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    // const [password, setPassword] = useState('');
     // const [dob, setDob] = useState('');
     // const [showPicker, setShowPicker] = useState(false);
 
-const [clientUserId, setClientUserId] = useState(null);
+    const [clientUserId, setClientUserId] = useState(null);
 
-useEffect(() => {
-    const loadUserId = async () => {
-        const id = await AsyncStorage.getItem("clientUserId");
-        if (id) {
-            setClientUserId(Number(id));
-        } else {
-            Alert.alert("Error", "Client User ID missing");
-        }
-    };
+    useEffect(() => {
+        const loadUserId = async () => {
+            const id = await AsyncStorage.getItem("clientUserId");
+            if (id) {
+                setClientUserId(Number(id));
+            } else {
+                Alert.alert("Error", "Client User ID missing");
+            }
+        };
 
-    loadUserId();
-}, []);
+        loadUserId();
+    }, []);
+
+
+    // to show prefilled values
+    useEffect(() => {
+        if (!clientUserId) return;
+
+        const fetchProfile = async () => {
+            try {
+                const res = await fetch(`${MY_API}auth/user/${clientUserId}`);
+
+                const data = await res.json();
+
+                console.log("PROFILE DATA:", data);
+
+                if (data?.errCode === 0 && data?.data) {
+                    setFullName(data.data.name || '');
+                    setEmail(data.data.email || '');
+                    setMobile(data.data.mobile || '');
+                } else {
+                    Alert.alert("Error", "Failed to load profile");
+                }
+            } catch (err) {
+                console.error("FETCH PROFILE ERROR:", err);
+                Alert.alert("Error", "Unable to fetch profile");
+            }
+        };
+
+        fetchProfile();
+    }, [clientUserId]);
+
 
     // const onChange = (event, selectedDate) => {
     //     setShowPicker(false);
@@ -59,11 +89,10 @@ useEffect(() => {
             name: fullName,
             mobile,
             email,
-            password
+            // password
         };
 
         try {
-            // 1️⃣ CLIENT DB UPDATE
             const res = await fetch(`${API_BASE_URL}updateUser`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -78,7 +107,6 @@ useEffect(() => {
                 return;
             }
 
-            // 2️⃣ LOGIN DB UPDATE
             const myRes = await fetch(`${MY_API}auth/update-user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -87,7 +115,7 @@ useEffect(() => {
                     name: fullName,
                     email,
                     mobile,
-                    password
+                    // password
                 })
             });
 
@@ -107,11 +135,11 @@ useEffect(() => {
         }
     };
 
-useEffect(() => {
-    if (!clientUserId) {
-        console.warn("clientUserId missing in UpdateProfile screen");
-    }
-}, []);
+    useEffect(() => {
+        if (!clientUserId) {
+            console.warn("clientUserId missing in UpdateProfile screen");
+        }
+    }, []);
 
 
     return (
@@ -148,10 +176,10 @@ useEffect(() => {
                 <TextInput placeholder="Email Address" placeholderTextColor="#aaa" style={styles.input} keyboardType="email-address" value={email} onChangeText={setEmail} />
             </View>
 
-            <View style={styles.inputWrapper}>
+            {/* <View style={styles.inputWrapper}>
                 <Ionicons name="lock-closed-outline" size={20} style={styles.icon} />
                 <TextInput placeholder="Password" placeholderTextColor="#aaa" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
-            </View>
+            </View> */}
 
             {/* <View style={styles.inputWrapper}>
                 <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowPicker(true)}>

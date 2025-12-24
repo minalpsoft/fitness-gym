@@ -25,7 +25,7 @@ export default function LoginScreen({ navigation }) {
             });
 
             const data = await res.json();
-            console.log("LOGIN RESPONSE:", data);
+            // console.log("LOGIN RESPONSE:", data);
 
             if (!res.ok) {
                 alert(data.message || "Login failed");
@@ -97,7 +97,7 @@ export default function LoginScreen({ navigation }) {
             </TouchableOpacity>
 
 
-            <Text style={styles.forgotText}>Forgot Password</Text>
+            <Text style={styles.forgotText} onPress={() => navigation.navigate("ForgotPassword")}>Forgot Password</Text>
 
             <Text style={styles.loginText}>Already have account? <Text style={styles.loginLink} onPress={() => navigation.navigate('SignUpScreen')}> Register</Text></Text>
         </ScrollView>

@@ -38,7 +38,7 @@ export default function ReferralCode({ navigation }) {
         try {
             const res = await axios.get(`${API_URL}/auth/user/${clientUserId}`);
             setUserName(res.data.name);
-            setReferralCode(res.data.referral_code);
+            setReferralCode(res.data.data.referral_code);
         } catch (err) {
             console.error("Failed to fetch user", err);
         }

@@ -30,7 +30,7 @@ export default function Dashboard({ navigation }) {
                 `${API_URL}/subscription/active/${clientUserId}`
             );
 
-            console.log("SUBSCRIPTION RESPONSE:", res.data);
+            // console.log("SUBSCRIPTION RESPONSE:", res.data);
 
             if (Array.isArray(res.data) && res.data.length > 0) {
                 setPlan(res.data[0]);
@@ -57,7 +57,7 @@ export default function Dashboard({ navigation }) {
     const fetchUser = async (clientUserId) => {
         try {
             const res = await axios.get(`${API_URL}/auth/user/${clientUserId}`);
-            setUserName(res.data.name);
+            setUserName(res.data.data.name);
         } catch (err) {
             console.error("Failed to fetch user", err);
         }

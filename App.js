@@ -14,6 +14,7 @@ import PaymentHistory from './src/screens/PaymentHistory';
 import ReferralCode from './src/screens/ReferralCode';
 import PaypalPayment from './src/screens/PaypalPayment';
 import PaypalPayment1 from './src/screens/PaypalPayment1';
+import ForgotPassword from './src/screens/ForgotPassword';
 
 
 import {
@@ -56,6 +57,8 @@ export default function App() {
         <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
         <Stack.Screen name="PaymentHistory" component={PaymentHistory} />
         <Stack.Screen name="ReferralCode" component={ReferralCode} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
