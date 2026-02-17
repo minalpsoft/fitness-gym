@@ -91,14 +91,14 @@ export default function PaypalSandbox({ route, navigation }) {
 
     return (
         <View style={styles.container}>
-            
-                        <View style={styles.logoContainer}>
-                            <Image
-                                source={require('../../assets/gym_logo.jpg')}
-                                style={styles.logo}
-                                resizeMode="contain"
-                            />
-                        </View>
+
+            <View style={styles.logoContainer}>
+                <Image
+                    source={require('../../assets/gym_logo.jpg')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
+            </View>
 
             <Text style={styles.title}>Complete Your Payment</Text>
             <Text style={styles.subtitle}>Securely pay with PayPal to activate your plan</Text>
@@ -126,7 +126,7 @@ export default function PaypalSandbox({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-     container: {
+    container: {
         flexGrow: 1,
         backgroundColor: '#000',
         padding: 20,

@@ -125,7 +125,7 @@ export default function PaymentHistory({ navigation,route }) {
                                     {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
                                 <Text style={styles.valueText}>
-                                    ₹ {item.amount}
+                                    € {item.amount}
                                 </Text>
                             </View>
                         );
