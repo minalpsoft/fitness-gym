@@ -13,7 +13,7 @@ import UpdateProfile from './src/screens/UpdateProfile';
 import PaymentHistory from './src/screens/PaymentHistory';
 import ReferralCode from './src/screens/ReferralCode';
 import PaypalPayment from './src/screens/PaypalPayment';
-import PaypalPayment1 from './src/screens/PaypalPayment1';
+import PaypalSandbox from './src/screens/PaypalSandbox';
 import ForgotPassword from './src/screens/ForgotPassword';
 
 
@@ -51,7 +51,7 @@ export default function App() {
         <Stack.Screen name="ChoosePlan" component={ChoosePlan} />
         <Stack.Screen name="MakePayment" component={MakePayment} />
         <Stack.Screen name="PaypalPayment" component={PaypalPayment} />
-        <Stack.Screen name="PaypalPayment1" component={PaypalPayment1} />
+        <Stack.Screen name="PaypalSandbox" component={PaypalSandbox} />
 
         <Stack.Screen name="BuyPlan" component={BuyPlan} />
         <Stack.Screen name="UpdateProfile" component={UpdateProfile} />

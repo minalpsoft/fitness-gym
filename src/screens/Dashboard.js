@@ -9,17 +9,25 @@ import { Alert } from "react-native";
 // const API_URL = "http://192.168.31.43:3000";
 const MY_API = process.env.EXPO_PUBLIC_MY_API;
 
-export default function Dashboard({ navigation }) {
+export default function Dashboard({ navigation, route }) {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [clientUserId, setClientUserId] = useState(null);
     const [userName, setUserName] = useState("");
 
+
+    useEffect(() => {
+        if (route.params?.refresh) {
+            fetchPlan(); // Reload the latest subscription after payment
+        }
+    }, [route.params?.refresh]);
+
     useEffect(() => {
         const loadUser = async () => {
             const storedUserId = await AsyncStorage.getItem("clientUserId");
             if (storedUserId) {
-setClientUserId(storedUserId);            }
+                setClientUserId(storedUserId);
+            }
         };
         loadUser();
     }, []);

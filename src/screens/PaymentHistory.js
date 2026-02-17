@@ -1,14 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView,Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const MY_API = process.env.EXPO_PUBLIC_MY_API;
 import axios from 'axios';
-export default function PaymentHistory({ navigation }) {
+import { useFocusEffect } from '@react-navigation/native';
 
+export default function PaymentHistory({ navigation,route }) {
+
+    
     const handleLogout = () => {
         Alert.alert(
             "Logout",
@@ -63,6 +66,20 @@ export default function PaymentHistory({ navigation }) {
             Alert.alert('Error', 'Failed to load payment history');
         }
     };
+
+    // ✅ Refresh payments every time screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchPayments();
+        }, [])
+    );
+
+    // ✅ Also refresh if navigated with a refresh flag
+    useEffect(() => {
+        if (route.params?.refresh) {
+            fetchPayments();
+        }
+    }, [route.params?.refresh]);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -258,3 +275,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
     },
 });
+
+
+

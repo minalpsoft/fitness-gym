@@ -82,21 +82,69 @@ export default function PaypalPayment({ route }) {
 </html>
 `;
 
+// const paypalHTML = `
+// <!DOCTYPE html>
+// <html>
+//   <head>
+//     <meta charset="UTF-8" />
+//     <meta 
+//       name="viewport" 
+//       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+//     />
+//     <style>
+//       html, body {
+//         margin: 0;
+//         padding: 0;
+//         width: 100%;
+//         font-family: Arial, sans-serif;
+//         background-color: #f7f7f7;
+//       }
+//       .page {
+//         padding: 24px;
+//         display: flex;
+//         justify-content: center;
+//       }
+//       .container {
+//         width: 100%;
+//         max-width: 420px;
+//         margin: 0 auto;
+//         background: #fff;
+//         padding: 20px;
+//         border-radius: 12px;
+//         box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+//       }
+//     </style>
+//     <script src="https://www.paypal.com/sdk/js?client-id=BAAMyKuyXUGSBFI25VSioxopWQPu2V8M4nXNtJvocT3r5ozS7cZ2XXf59WeHlBs_hIEdwnWi00lDkcT-Cw&currency=EUR"></script>
+//   </head>
+//   <body>
+//     <div class="page">
+//       <div class="container">
+//         <div id="paypal-button-container"></div>
+//         <script>
+//           const price = ${price ?? 0}; // dynamically injected
+//           paypal.Buttons({
+//             createOrder: function(data, actions) {
+//               return actions.order.create({
+//                 purchase_units: [{
+//                   amount: {
+//                     value: price.toString()
+//                   }
+//                 }]
+//               });
+//             },
+//             onApprove: function(data, actions) {
+//               return actions.order.capture().then(function(details) {
+//                 alert('Transaction completed by ' + details.payer.name.given_name);
+//               });
+//             }
+//           }).render('#paypal-button-container');
+//         </script>
+//       </div>
+//     </div>
+//   </body>
+// </html>
+// `;
 
-  // return (
-  //     <WebView
-  //         originWhitelist={["*"]}
-  //         source={{ html: paypalHTML }}
-  //         javaScriptEnabled
-  //         domStorageEnabled
-  //         scalesPageToFit={false}
-  //         startInLoadingState
-  //         renderLoading={() => (
-  //             <ActivityIndicator size="large" style={{ marginTop: 40 }} />
-  //         )}
-  //         style={{ width }}
-  //     />
-  // );
 
   return (
     <View style={{ flex: 1 }}>

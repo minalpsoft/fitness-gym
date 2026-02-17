@@ -3,63 +3,96 @@ import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
+const MY_API = process.env.EXPO_PUBLIC_MY_API;
 
 export default function MakePayment({ navigation, route }) {
 
-    const {
-        planName,
-        price, days,
-        expiryDate
-    } = route.params || {};
+    const { planId, planName, price, expiryDate, durationDays, onPaymentSuccess } = route.params || {};
+
     const [coupon, setCoupon] = useState("");
     const [discount, setDiscount] = useState(0);
     const [finalAmount, setFinalAmount] = useState(price);
     const [couponApplied, setCouponApplied] = useState(false);
 
-    // const handleApplyCoupon = () => {
-    //     if (!coupon) {
-    //         Alert.alert("Enter Coupon", "Please enter a voucher code");
-    //         return;
-    //     }
+    // const handlePaymentSuccess = async (transactionId) => {
+    //     try {
+    //         const clientUserId = await AsyncStorage.getItem('clientUserId');
+    //         if (!clientUserId) {
+    //             Alert.alert("Error", "User not logged in");
+    //             return;
+    //         }
 
-    //     if (coupon === "GYM50") {
-    //         const discountAmount = price * 0.5;
-    //         setDiscount(discountAmount);
-    //         setFinalAmount(price - discountAmount);
-    //         setCouponApplied(true);
-    //         Alert.alert("Success", "Coupon applied successfully");
-    //     } else {
-    //         Alert.alert("Invalid Coupon", "Voucher not valid");
+    //         if (!route.params?.planId || !planName || !price || !days) {
+    //             Alert.alert("Error", "Missing plan details");
+    //             return;
+    //         }
+
+    //         // 1️⃣ Create subscription
+    //         const subResponse = await axios.post(`${MY_API}subscription`, {
+    //             clientUserId,
+    //             planId: route.params.planId,
+    //             planName,
+    //             price,
+    //             durationDays: days,
+    //         });
+    //         console.log("SUBSCRIPTION RESPONSE:", subResponse.data);
+
+    //         const subscriptionId = subResponse.data.subscriptionId;
+    //         if (!subscriptionId) throw new Error("Subscription creation failed");
+
+    //         // 2️⃣ Create payment
+    //         const paymentResponse = await axios.post(`${MY_API}payment`, {
+    //             clientUserId,
+    //             planId: route.params.planId,
+    //             subscriptionId,
+    //             amount: price,
+    //             transactionId,
+    //             paymentStatus: 'success',
+    //         });
+    //         console.log("PAYMENT RESPONSE:", paymentResponse.data);
+
+    //         console.log("Subscription & Payment created:", subResponse.data, paymentResponse.data);
+
+    //         // 3️⃣ Navigate to Dashboard and refresh
+    //         navigation.navigate('Dashboard', { refresh: true });
+
+    //     } catch (err) {
+    //         console.error("Payment handling failed:", err);
+    //         Alert.alert('Error', 'Failed to save payment or subscription');
     //     }
     // };
 
-   const handleLogout = () => {
-    Alert.alert(
-        "Logout",
-        "Are you sure you want to logout?",
-        [
-            {
-                text: "Cancel",
-                style: "cancel",
-            },
-            {
-                text: "Logout",
-                style: "destructive",
-                onPress: async () => {
-                    await AsyncStorage.removeItem("clientUserId");
-                    await AsyncStorage.removeItem("referralCode"); 
 
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: "LoginScreen" }], 
-                    });
+    const handleLogout = () => {
+        Alert.alert(
+            "Logout",
+            "Are you sure you want to logout?",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
                 },
-            },
-        ],
-        { cancelable: true }
-    );
-};
-  
+                {
+                    text: "Logout",
+                    style: "destructive",
+                    onPress: async () => {
+                        await AsyncStorage.removeItem("clientUserId");
+                        await AsyncStorage.removeItem("referralCode");
+
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "LoginScreen" }],
+                        });
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.backContainer}>
@@ -109,35 +142,23 @@ export default function MakePayment({ navigation, route }) {
                     // editable={!couponApplied}
                     />
 
-                    {/* <TouchableOpacity onPress={handleApplyCoupon}>
-                        <Text style={{ color: "green", fontWeight: "600", marginLeft: "15" }}>
-                            {couponApplied ? "Applied" : "Apply"}
-                        </Text>
-                    </TouchableOpacity>
-                    {couponApplied && (
-                        <>
-                            <Text style={styles.discountText}>
-                                Discount: - Rs.{discount}
-                            </Text>
-
-                            <Text style={styles.finalAmount}>
-                                Payable Amount: Rs.{finalAmount}
-                            </Text>
-                        </>
-                    )} */}
-
                 </View>
             </View>
 
 
-
             <TouchableOpacity
-                style={{ width: "100%" }} onPress={() => navigation.navigate("PaypalPayment", {
-                    planName,
-                    price, days,
-                    expiryDate,
-                })} >
-
+                style={{ width: "100%" }}
+                onPress={() =>
+                    // Pass only serializable data
+                    navigation.navigate("PaypalSandbox", {
+                        planId: route.params.planId,
+                        planName,
+                        price,
+                        durationDays,
+                        expiryDate,
+                    })
+                }
+            >
                 <LinearGradient
                     colors={['#0081d1', '#1bc97b']}
                     start={{ x: 0.5, y: 0 }}
@@ -147,6 +168,8 @@ export default function MakePayment({ navigation, route }) {
                     <Text style={styles.buyBtnText}>PAY NOW</Text>
                 </LinearGradient>
             </TouchableOpacity>
+
+
 
             <View style={styles.menu}>
                 <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Dashboard')}>
