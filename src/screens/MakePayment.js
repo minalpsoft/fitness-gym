@@ -65,6 +65,43 @@ export default function MakePayment({ navigation, route }) {
     //     }
     // };
 
+    // Inside MakePayment component
+
+    const applyCoupon = async () => {
+        if (!coupon) {
+            Alert.alert("Error", "Please enter a referral code");
+            return;
+        }
+
+        try {
+            const res = await axios.post(`${MY_API}validate-referral`, {
+                code: coupon,
+                planId,
+                durationDays
+            });
+
+            if (!res.data.valid) {
+                Alert.alert("Invalid Code", "Referral code is not valid or expired");
+                return;
+            }
+
+            if (durationDays !== 30) {
+                Alert.alert("Not Applicable", "Referral discount applies only to 1-month plans");
+                return;
+            }
+
+            const discountedAmount = price / 2; // 50% off
+            setDiscount(price - discountedAmount);
+            setFinalAmount(discountedAmount);
+            setCouponApplied(true);
+
+            Alert.alert("Success", `Referral applied! You pay €${discountedAmount}`);
+        } catch (err) {
+            console.error(err);
+            Alert.alert("Error", "Failed to apply referral code");
+        }
+    };
+
 
     const handleLogout = () => {
         Alert.alert(
@@ -129,7 +166,7 @@ export default function MakePayment({ navigation, route }) {
 
 
 
-            <View style={styles.planCard}>
+            {/* <View style={styles.planCard}>
                 <Ionicons name="pricetag" size={18} color="green" />
 
                 <View style={{ flex: 1 }}>
@@ -143,7 +180,33 @@ export default function MakePayment({ navigation, route }) {
                     />
 
                 </View>
+            </View> */}
+
+            <View style={styles.planCard}>
+                <Ionicons name="pricetag" size={18} color="green" />
+
+                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                    <TextInput
+                        style={[styles.couponInput, { flex: 1 }]}
+                        placeholder="Apply Coupon"
+                        placeholderTextColor="#777"
+                        value={coupon}
+                        onChangeText={setCoupon}
+                        editable={!couponApplied} // disable after applied
+                    />
+
+                    <TouchableOpacity
+                        style={styles.applyBtn}
+                        onPress={applyCoupon}
+                        disabled={couponApplied} // disable after applied
+                    >
+                        <Text style={styles.applyBtnText}>
+                            {couponApplied ? 'Applied' : 'Apply'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
+
 
 
             <TouchableOpacity
@@ -334,4 +397,25 @@ const styles = StyleSheet.create({
         marginLeft: 15,
         fontFamily: 'Poppins_400Regular',
     },
+    couponInput: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        padding: 10,
+        marginRight: 10,
+        color: '#000',
+    },
+
+    applyBtn: {
+        backgroundColor: '#20e880ff',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+    },
+
+    applyBtnText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+
 });

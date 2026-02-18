@@ -21,7 +21,7 @@ export default function ReferralCode({ navigation }) {
             message: `Hey! Use my referral code ${referralCode} to join the Fitness Gym App 💪`,
         });
     };
-    
+
 
     // show username
     useEffect(() => {
@@ -34,15 +34,33 @@ export default function ReferralCode({ navigation }) {
         loadUser();
     }, []);
 
-     const fetchUser = async (clientUserId) => {
-        try {
-            const res = await axios.get(`${MY_API}auth/user/${clientUserId}`);
-            setUserName(res.data.data.name);
-            setReferralCode(res.data.data.referral_code);
-        } catch (err) {
-            console.error("Failed to fetch user", err);
+    // const fetchUser = async (clientUserId) => {
+    //     try {
+    //         const res = await axios.get(`${MY_API}auth/user/${clientUserId}`);
+    //         setUserName(res.data.data.name);
+    //         setReferralCode(res.data.data.referral_code);
+    //     } catch (err) {
+    //         console.error("Failed to fetch user", err);
+    //     }
+    // };
+
+    const fetchUser = async (clientUserId) => {
+    try {
+        const res = await axios.get(`${MY_API}auth/user/${clientUserId}`);
+        setUserName(res.data.data.name);
+        setReferralCode(res.data.data.referral_code);
+
+        // Show reward if user has any pending referral reward
+        if (res.data.data.referral_reward) {
+            Alert.alert(
+                "Reward Available!",
+                "You earned 50% off next month from a referral!"
+            );
         }
-    };
+    } catch (err) {
+        console.error("Failed to fetch user", err);
+    }
+};
 
 
     useEffect(() => {
