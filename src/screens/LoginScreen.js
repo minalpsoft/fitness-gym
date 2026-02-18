@@ -43,7 +43,11 @@ export default function LoginScreen({ navigation }) {
             );
 
 
-            navigation.replace("Dashboard");
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "Dashboard" }],
+            });
+
 
         } catch (err) {
             console.log(err);

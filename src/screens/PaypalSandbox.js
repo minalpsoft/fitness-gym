@@ -57,6 +57,34 @@ export default function PaypalSandbox({ route, navigation }) {
                     paymentStatus: "success",
                 });
 
+                // 6️⃣ Apply referral if exists
+                const referralCode = await AsyncStorage.getItem("appliedReferralCode");
+                const referrerId = await AsyncStorage.getItem("referrerId");
+
+                if (referralCode && referrerId) {
+                    try {
+                        const refRes = await axios.post(`${MY_API}auth/apply-referral`, {
+                            referrerId: Number(referrerId),
+                            refereeId: Number(clientUserId),
+                            planId: Number(planId),
+                        });
+
+                        if (refRes.data?.applied) {
+                            console.log("Referral applied successfully");
+                        } else {
+                            console.log("Referral skipped:", refRes.data?.msg);
+                        }
+
+                        await AsyncStorage.removeItem("appliedReferralCode");
+                        await AsyncStorage.removeItem("referrerId");
+
+                    } catch (e) {
+                        console.log("Referral apply failed:", e);
+                    }
+                }
+
+
+
                 // console.log("Subscription payload:", {
                 //     clientUserId: Number(clientUserId),
                 //     planId: Number(planId),
@@ -76,8 +104,24 @@ export default function PaypalSandbox({ route, navigation }) {
 
 
 
-                Alert.alert("Success 🎉", "Payment successfull!");
-                navigation.navigate("Dashboard", { refresh: true });
+                Alert.alert("Success 🎉", "Payment successful!", [
+                    {
+                        text: "OK",
+                        onPress: () => {
+                            navigation.reset({
+                                index: 0,
+                                routes: [
+                                    {
+                                        name: "Dashboard",
+                                        params: { refresh: true },
+                                    },
+                                ],
+                            });
+                        },
+                    },
+                ]);
+
+
 
             } else if (result.type === "cancel") {
                 Alert.alert("Cancelled", "Payment cancelled");

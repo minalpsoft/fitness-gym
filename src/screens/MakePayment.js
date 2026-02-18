@@ -6,66 +6,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
+import { useEffect } from 'react';
 const MY_API = process.env.EXPO_PUBLIC_MY_API;
 
 export default function MakePayment({ navigation, route }) {
 
     const { planId, planName, price, expiryDate, durationDays, onPaymentSuccess } = route.params || {};
-
     const [coupon, setCoupon] = useState("");
     const [discount, setDiscount] = useState(0);
     const [finalAmount, setFinalAmount] = useState(price);
     const [couponApplied, setCouponApplied] = useState(false);
-
-    // const handlePaymentSuccess = async (transactionId) => {
-    //     try {
-    //         const clientUserId = await AsyncStorage.getItem('clientUserId');
-    //         if (!clientUserId) {
-    //             Alert.alert("Error", "User not logged in");
-    //             return;
-    //         }
-
-    //         if (!route.params?.planId || !planName || !price || !days) {
-    //             Alert.alert("Error", "Missing plan details");
-    //             return;
-    //         }
-
-    //         // 1️⃣ Create subscription
-    //         const subResponse = await axios.post(`${MY_API}subscription`, {
-    //             clientUserId,
-    //             planId: route.params.planId,
-    //             planName,
-    //             price,
-    //             durationDays: days,
-    //         });
-    //         console.log("SUBSCRIPTION RESPONSE:", subResponse.data);
-
-    //         const subscriptionId = subResponse.data.subscriptionId;
-    //         if (!subscriptionId) throw new Error("Subscription creation failed");
-
-    //         // 2️⃣ Create payment
-    //         const paymentResponse = await axios.post(`${MY_API}payment`, {
-    //             clientUserId,
-    //             planId: route.params.planId,
-    //             subscriptionId,
-    //             amount: price,
-    //             transactionId,
-    //             paymentStatus: 'success',
-    //         });
-    //         console.log("PAYMENT RESPONSE:", paymentResponse.data);
-
-    //         console.log("Subscription & Payment created:", subResponse.data, paymentResponse.data);
-
-    //         // 3️⃣ Navigate to Dashboard and refresh
-    //         navigation.navigate('Dashboard', { refresh: true });
-
-    //     } catch (err) {
-    //         console.error("Payment handling failed:", err);
-    //         Alert.alert('Error', 'Failed to save payment or subscription');
-    //     }
-    // };
-
-    // Inside MakePayment component
+    const [hasReferrerReward, setHasReferrerReward] = useState(false);
 
     const applyCoupon = async () => {
         if (!coupon) {
@@ -74,23 +25,30 @@ export default function MakePayment({ navigation, route }) {
         }
 
         try {
-            const res = await axios.post(`${MY_API}validate-referral`, {
+            const clientUserId = await AsyncStorage.getItem("clientUserId");
+
+            const res = await axios.post(`${MY_API}auth/validate-referral`, {
                 code: coupon,
                 planId,
-                durationDays
+                durationDays,
+                refereeId: Number(clientUserId)
             });
 
             if (!res.data.valid) {
-                Alert.alert("Invalid Code", "Referral code is not valid or expired");
+                Alert.alert("Invalid Code", res.data.msg || "Referral invalid");
                 return;
             }
 
             if (durationDays !== 30) {
-                Alert.alert("Not Applicable", "Referral discount applies only to 1-month plans");
+                Alert.alert("Not Applicable", "Referral only for 1-month plan");
                 return;
             }
 
-            const discountedAmount = price / 2; // 50% off
+            // ✅ SAVE referral for payment step
+            await AsyncStorage.setItem("appliedReferralCode", coupon);
+            await AsyncStorage.setItem("referrerId", String(res.data.referrerId));
+
+            const discountedAmount = price / 2;
             setDiscount(price - discountedAmount);
             setFinalAmount(discountedAmount);
             setCouponApplied(true);
@@ -102,6 +60,29 @@ export default function MakePayment({ navigation, route }) {
         }
     };
 
+    useEffect(() => {
+        const checkReferrerReward = async () => {
+            const clientUserId = await AsyncStorage.getItem("clientUserId");
+            if (!clientUserId) return;
+
+            try {
+                const res = await axios.get(`${MY_API}payment/referrer-discount/${clientUserId}`);
+                setHasReferrerReward(res.data.hasReward);
+            } catch (e) {
+                console.log("Reward check failed", e);
+            }
+        };
+
+        checkReferrerReward();
+    }, []);
+
+    useEffect(() => {
+        if (hasReferrerReward && !couponApplied) {
+            const discounted = price / 2;
+            setDiscount(price - discounted);
+            setFinalAmount(discounted);
+        }
+    }, [hasReferrerReward]);
 
     const handleLogout = () => {
         Alert.alert(
@@ -150,12 +131,31 @@ export default function MakePayment({ navigation, route }) {
             <Text style={styles.subtitle}>Select your membership duration</Text>
 
             <View style={styles.selectedPlan}>
-                <Text style={styles.selectedText}>
-                    Selected Plan : {planName}
-                </Text>
-                <Text style={styles.selectedText}>
-                    € {price}
-                </Text>
+                <Text style={styles.selectedText}>Selected Plan: {planName}</Text>
+
+                {(couponApplied || hasReferrerReward) ? (
+                    <>
+                        <Text style={styles.originalPrice}>€ {price}</Text>
+
+                        <Text style={styles.finalAmountText}>
+                            You Pay: € {finalAmount}
+                        </Text>
+
+                        {couponApplied && (
+                            <Text style={styles.rewardText}>
+                                🎉 Referral applied
+                            </Text>
+                        )}
+
+                        {!couponApplied && hasReferrerReward && (
+                            <Text style={styles.rewardText}>
+                                🎉 Referral reward applied
+                            </Text>
+                        )}
+                    </>
+                ) : (
+                    <Text style={styles.finalAmountText}>€ {finalAmount}</Text>
+                )}
             </View>
 
             <View style={{ width: "100%", alignItems: "flex-start" }}>
@@ -163,24 +163,6 @@ export default function MakePayment({ navigation, route }) {
                     Expire On: {expiryDate}
                 </Text>
             </View>
-
-
-
-            {/* <View style={styles.planCard}>
-                <Ionicons name="pricetag" size={18} color="green" />
-
-                <View style={{ flex: 1 }}>
-                    <TextInput
-                        style={styles.couponInput}
-                        placeholder="Apply Coupon"
-                        placeholderTextColor="#777"
-                        value={coupon}
-                        onChangeText={setCoupon}
-                    // editable={!couponApplied}
-                    />
-
-                </View>
-            </View> */}
 
             <View style={styles.planCard}>
                 <Ionicons name="pricetag" size={18} color="green" />
@@ -192,22 +174,31 @@ export default function MakePayment({ navigation, route }) {
                         placeholderTextColor="#777"
                         value={coupon}
                         onChangeText={setCoupon}
-                        editable={!couponApplied} // disable after applied
+                        editable={!couponApplied && !hasReferrerReward}
                     />
 
                     <TouchableOpacity
                         style={styles.applyBtn}
                         onPress={applyCoupon}
-                        disabled={couponApplied} // disable after applied
+                        disabled={couponApplied || hasReferrerReward}
                     >
                         <Text style={styles.applyBtnText}>
-                            {couponApplied ? 'Applied' : 'Apply'}
+                            {hasReferrerReward
+                                ? "Reward Applied"
+                                : couponApplied
+                                    ? "Applied"
+                                    : "Apply"}
                         </Text>
+
                     </TouchableOpacity>
                 </View>
             </View>
 
-
+            {hasReferrerReward && (
+                <Text style={{ color: "#20e880", fontSize: 12, marginTop: 5, marginBottom: 10 }}>
+                    Your referral reward is automatically applied.
+                </Text>
+            )}
 
             <TouchableOpacity
                 style={{ width: "100%" }}
@@ -216,7 +207,7 @@ export default function MakePayment({ navigation, route }) {
                     navigation.navigate("PaypalSandbox", {
                         planId: route.params.planId,
                         planName,
-                        price,
+                        price: finalAmount,
                         durationDays,
                         expiryDate,
                     })
@@ -346,20 +337,65 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
     },
     selectedPlan: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderRadius: 10,
-        padding: 10,
-        // marginVertical: 20,
         width: '100%',
+        backgroundColor: '#111', // dark card
+        borderRadius: 12,
+        padding: 15,
+        marginVertical: 15,
+        borderWidth: 1,
+        borderColor: '#2f4cf4ff',
+        // Flex column to stack prices vertically
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 6, // space between texts
     },
+
     selectedText: {
         color: '#20e880ff',
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
         fontFamily: 'Poppins_400Regular',
     },
+
+    originalPrice: {
+        color: '#ff4d4d', // red strike-through
+        fontSize: 14,
+        textDecorationLine: 'line-through',
+        fontFamily: 'Poppins_400Regular',
+    },
+
+    discountText: {
+        color: '#00ff88', // green for discount
+        fontSize: 14,
+        fontFamily: 'Poppins_400Regular',
+    },
+
+    finalAmountText: {
+        color: '#20e880ff',
+        fontSize: 18,
+        fontWeight: 'bold',
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    originalPrice: {
+        color: "#ff4d4d",
+        textDecorationLine: "line-through",
+        fontSize: 14,
+        marginTop: 4,
+    },
+
+    finalAmountText: {
+        color: "#20e880",
+        fontSize: 18,
+        fontWeight: "bold",
+        marginTop: 4,
+    },
+
+    rewardText: {
+        color: "#20e880",
+        fontSize: 12,
+        marginTop: 2,
+    },
+
     expireText: {
         color: '#aaa',
         fontSize: 12,
@@ -399,11 +435,11 @@ const styles = StyleSheet.create({
     },
     couponInput: {
         borderWidth: 1,
-        borderColor: '#ccc',
+        // borderColor: '#2f4cf4ff',
         borderRadius: 8,
         padding: 10,
         marginRight: 10,
-        color: '#000',
+        color: '#ffffff',
     },
 
     applyBtn: {

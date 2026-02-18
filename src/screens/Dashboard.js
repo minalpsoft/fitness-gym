@@ -22,6 +22,17 @@ export default function Dashboard({ navigation, route }) {
         }
     }, [route.params?.refresh]);
 
+//     useEffect(() => {
+//   const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+//     if (!navigation.canGoBack()) {
+//       return;
+//     }
+//     e.preventDefault();
+//   });
+
+//   return unsubscribe;
+// }, [navigation]);
+
     useEffect(() => {
         const loadUser = async () => {
             const storedUserId = await AsyncStorage.getItem("clientUserId");
@@ -124,11 +135,11 @@ export default function Dashboard({ navigation, route }) {
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.backContainer}>
+            {/* <View style={styles.backContainer}>
                 <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
                     <Ionicons name="arrow-back-outline" size={28} color="#20e880ff" />
                 </TouchableOpacity>
-            </View>
+            </View> */}
 
             <View style={styles.logoContainer}>
                 <Image
