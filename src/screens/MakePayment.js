@@ -117,7 +117,7 @@ export default function MakePayment({ navigation, route }) {
                     Selected Plan : {planName}
                 </Text>
                 <Text style={styles.selectedText}>
-                    Rs.{price}
+                    € {price}
                 </Text>
             </View>
 

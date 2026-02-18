@@ -90,7 +90,7 @@ export default function ChoosePlan({ navigation }) {
                         <Text style={styles.planLabel}>{plan.label}</Text>
                         <Text style={styles.planDuration}>{plan.days} Day</Text>
                     </View>
-                    <Text style={styles.planPrice}>€.{plan.price}</Text>
+                    <Text style={styles.planPrice}>€ {plan.price}</Text>
                 </TouchableOpacity>
             ))}
 
@@ -101,7 +101,7 @@ export default function ChoosePlan({ navigation }) {
                             Selected Plan : {selectedPlan.label}
                         </Text>
                         <Text style={styles.selectedText}>
-                            Rs.{selectedPlan.price}
+                            € {selectedPlan.price}
                         </Text>
                     </View>
 

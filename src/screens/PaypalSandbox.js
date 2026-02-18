@@ -108,7 +108,7 @@ export default function PaypalSandbox({ route, navigation }) {
                 <Text style={styles.planValue}>{planName}</Text>
 
                 <Text style={styles.planLabel}>Price</Text>
-                <Text style={styles.planValue}>₹{price}</Text>
+                <Text style={styles.planValue}>€ {price}</Text>
 
                 <Text style={styles.planLabel}>Duration</Text>
                 <Text style={styles.planValue}>{durationDays} Days</Text>
