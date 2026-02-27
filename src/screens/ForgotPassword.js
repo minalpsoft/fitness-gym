@@ -152,6 +152,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
         padding: 20,
         alignItems: 'center',
+        paddingBottom:280
     },
     logoContainer: {
         marginTop: 50,

@@ -159,38 +159,6 @@ export default function UpdateProfile({ navigation, route }) {
                 <TextInput placeholder="Email Address" placeholderTextColor="#aaa" style={styles.input} keyboardType="email-address" value={email} onChangeText={setEmail} />
             </View>
 
-            {/* <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={20} style={styles.icon} />
-                <TextInput placeholder="Password" placeholderTextColor="#aaa" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
-            </View> */}
-
-            {/* <View style={styles.inputWrapper}>
-                <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowPicker(true)}>
-                    <TextInput
-                        placeholder="Date of birth"
-                        placeholderTextColor="#aaa"
-                        value={dob}
-                        editable={false}
-                        style={styles.input}
-                    />
-                </TouchableOpacity>
-
-                <Ionicons
-                    name="calendar-outline"
-                    size={20}
-                    style={styles.icon}
-                    onPress={() => setShowPicker(true)}
-                />
-
-                {showPicker && (
-                    <DateTimePicker
-                        value={new Date()}
-                        mode="date"
-                        display={Platform.OS === "ios" ? "spinner" : "default"}
-                        onChange={onChange}
-                    />
-                )}
-            </View> */}
 
             <TouchableOpacity style={{ width: "100%" }} onPress={handleUpdateProfile}>
                 <LinearGradient
@@ -220,6 +188,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
         padding: 20,
         alignItems: 'center',
+        paddingBottom:280
     },
     logoContainer: {
         marginTop: 30,
