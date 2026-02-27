@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
         padding: 20,
         alignItems: 'center',
+        paddingBottom:280
     },
     logoContainer: {
         marginTop: 30,
@@ -183,8 +184,6 @@ const styles = StyleSheet.create({
         color: '#aaa',
         fontFamily: 'Poppins_400Regular',
         marginBottom: 50,
-        marginBottom: 50
-
     },
     loginLink: {
         color: '#1691c2ff',
