@@ -27,13 +27,13 @@ export default function LoginScreen({ navigation }) {
             // console.log("LOGIN RESPONSE:", data);
 
             if (!res.ok) {
-                alert(data.message || "Login failed");
+                alert(data.message || "Email or password is incorrect");
                 return;
             }
 
             if (!data.clientUserId) {
                 // alert("Login succeeded but clientUserId missing");
-                alert("Login failed! Cannot find Client Id");
+                alert("Login failed! Cannot find Client");
                 return;
             }
 
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
         padding: 20,
         alignItems: 'center',
-        paddingBottom:280
+        paddingBottom: 280
     },
     logoContainer: {
         marginTop: 30,
