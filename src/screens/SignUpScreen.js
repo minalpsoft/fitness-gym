@@ -185,7 +185,7 @@ export default function SignUpScreen({ navigation }) {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    clientUserId: uniqueId,
+                    clientUserId: String(uniqueId),
                     name,
                     email,
                     mobile,

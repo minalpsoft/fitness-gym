@@ -109,7 +109,7 @@ export default function PaymentHistory({ navigation,route }) {
                 </View>
 
                 {payments.length === 0 ? (
-                    <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                    <Text style={{ textAlign: 'center', marginTop: 10,color: 'white' }}>
                         No payments found
                     </Text>
                 ) : (
