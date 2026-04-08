@@ -12,126 +12,251 @@ const MY_API = process.env.EXPO_PUBLIC_MY_API;
 export default function PaypalSandbox({ route, navigation }) {
     const { planId, planName, price, durationDays } = route.params || {};
 
+    // const handlePayment = async () => {
+    //     try {
+    //         const clientUserId = await AsyncStorage.getItem("clientUserId");
+    //         if (!clientUserId) throw new Error("User not logged in");
+
+    //         // 1️⃣ Create PayPal order
+    //         const orderRes = await axios.post(`${MY_API}paypal/create-order`, { amount: Number(price) });
+    //         const approvalUrl = orderRes.data.approvalUrl;
+    //         if (!approvalUrl) throw new Error("Approval URL not found");
+
+    //         // 2️⃣ Open WebBrowser for PayPal
+    //         const redirectUrl = Linking.createURL("success");
+    //         const result = await WebBrowser.openAuthSessionAsync(approvalUrl, redirectUrl);
+
+    //         if (result.type === "success") {
+    //             const parsed = Linking.parse(result.url);
+    //             const orderId = parsed.queryParams?.token;
+    //             if (!orderId) throw new Error("Order ID not found");
+
+    //             // 3️⃣ Capture PayPal payment
+    //             const captureRes = await axios.post(`${MY_API}paypal/capture`, { orderId });
+    //             if (captureRes.data.status !== "COMPLETED") throw new Error("Payment not completed");
+
+    //             // 4️⃣ Save subscription
+    //             const subRes = await axios.post(`${MY_API}subscription`, {
+    //                 clientUserId: Number(clientUserId),
+    //                 planId: Number(planId),
+    //                 planName,
+    //                 price: Number(price),
+    //                 durationDays: Number(durationDays),
+    //             });
+    //             const subscriptionId = subRes.data.subscriptionId;
+
+    //             if (!subscriptionId) throw new Error("Subscription creation failed");
+
+    //             // 5️⃣ Save payment
+    //             await axios.post(`${MY_API}payment`, {
+    //                 clientUserId: Number(clientUserId),
+    //                 planId: Number(planId),
+    //                 subscriptionId: Number(subscriptionId),
+    //                 amount: Number(price),
+    //                 transactionId: orderId,
+    //                 paymentStatus: "success",
+    //             });
+
+    //             // 6️⃣ Apply referral if exists
+    //             const referralCode = await AsyncStorage.getItem("appliedReferralCode");
+    //             const referrerId = await AsyncStorage.getItem("referrerId");
+
+    //             if (referralCode && referrerId) {
+    //                 try {
+    //                     const refRes = await axios.post(`${MY_API}auth/apply-referral`, {
+    //                         referrerId: Number(referrerId),
+    //                         refereeId: Number(clientUserId),
+    //                         planId: Number(planId),
+    //                     });
+
+    //                     if (refRes.data?.applied) {
+    //                         console.log("Referral applied successfully");
+    //                     } else {
+    //                         console.log("Referral skipped:", refRes.data?.msg);
+    //                     }
+
+    //                     await AsyncStorage.removeItem("appliedReferralCode");
+    //                     await AsyncStorage.removeItem("referrerId");
+
+    //                 } catch (e) {
+    //                     console.log("Referral apply failed:", e);
+    //                 }
+    //             }
+
+
+
+    //             // console.log("Subscription payload:", {
+    //             //     clientUserId: Number(clientUserId),
+    //             //     planId: Number(planId),
+    //             //     planName,
+    //             //     price: Number(price),
+    //             //     durationDays: Number(durationDays),
+    //             // });
+    //             // console.log("Payment payload:", {
+    //             //     clientUserId: Number(clientUserId),
+    //             //     planId: Number(planId),
+    //             //     subscriptionId: Number(subscriptionId),
+    //             //     amount: Number(price),
+    //             //     transactionId: orderId,
+    //             //     paymentStatus: "success",
+    //             // });
+
+
+
+
+    //             Alert.alert("Success 🎉", "Payment successful!", [
+    //                 {
+    //                     text: "OK",
+    //                     onPress: () => {
+    //                         navigation.reset({
+    //                             index: 0,
+    //                             routes: [
+    //                                 {
+    //                                     name: "Dashboard",
+    //                                     params: { refresh: true },
+    //                                 },
+    //                             ],
+    //                         });
+    //                     },
+    //                 },
+    //             ]);
+
+
+
+    //         } else if (result.type === "cancel") {
+    //             Alert.alert("Cancelled", "Payment cancelled");
+    //         }
+
+    //     } catch (err) {
+    //         console.log("Payment Error:", err);
+    //         Alert.alert("Error", "Payment or subscription failed");
+    //     }
+    // };
+
     const handlePayment = async () => {
-        try {
-            const clientUserId = await AsyncStorage.getItem("clientUserId");
-            if (!clientUserId) throw new Error("User not logged in");
+    try {
+        const clientUserId = await AsyncStorage.getItem("clientUserId");
+        if (!clientUserId) throw new Error("User not logged in");
 
-            // 1️⃣ Create PayPal order
-            const orderRes = await axios.post(`${MY_API}paypal/create-order`, { amount: Number(price) });
-            const approvalUrl = orderRes.data.approvalUrl;
-            if (!approvalUrl) throw new Error("Approval URL not found");
+        // 1️⃣ Create PayPal order
+        const orderRes = await axios.post(`${MY_API}paypal/create-order`, {
+            amount: Number(price),
+        });
 
-            // 2️⃣ Open WebBrowser for PayPal
-            const redirectUrl = Linking.createURL("success");
-            const result = await WebBrowser.openAuthSessionAsync(approvalUrl, redirectUrl);
+        const approvalUrl = orderRes.data.approvalUrl;
+        if (!approvalUrl) throw new Error("Approval URL not found");
 
-            if (result.type === "success") {
-                const parsed = Linking.parse(result.url);
-                const orderId = parsed.queryParams?.token;
-                if (!orderId) throw new Error("Order ID not found");
+        // 2️⃣ Open WebBrowser for PayPal
+        const redirectUrl = Linking.createURL("success");
+        const result = await WebBrowser.openAuthSessionAsync(approvalUrl, redirectUrl);
 
-                // 3️⃣ Capture PayPal payment
-                const captureRes = await axios.post(`${MY_API}paypal/capture`, { orderId });
-                if (captureRes.data.status !== "COMPLETED") throw new Error("Payment not completed");
+        if (result.type === "cancel") {
+            Alert.alert("Cancelled", "Payment cancelled");
+            return;
+        }
 
-                // 4️⃣ Save subscription
-                const subRes = await axios.post(`${MY_API}subscription`, {
-                    clientUserId: Number(clientUserId),
-                    planId: Number(planId),
-                    planName,
-                    price: Number(price),
-                    durationDays: Number(durationDays),
-                });
-                const subscriptionId = subRes.data.subscriptionId;
+        if (result.type !== "success") {
+            Alert.alert("Error", "Payment window closed unexpectedly");
+            return;
+        }
 
-                if (!subscriptionId) throw new Error("Subscription creation failed");
+        const parsed = Linking.parse(result.url);
+        const orderId = parsed.queryParams?.token;
+        if (!orderId) throw new Error("Order ID not found");
 
-                // 5️⃣ Save payment
-                await axios.post(`${MY_API}payment`, {
-                    clientUserId: Number(clientUserId),
-                    planId: Number(planId),
-                    subscriptionId: Number(subscriptionId),
-                    amount: Number(price),
-                    transactionId: orderId,
-                    paymentStatus: "success",
-                });
+        // 3️⃣ Capture PayPal payment
+        const captureRes = await axios.post(`${MY_API}paypal/capture`, { orderId });
 
-                // 6️⃣ Apply referral if exists
-                const referralCode = await AsyncStorage.getItem("appliedReferralCode");
-                const referrerId = await AsyncStorage.getItem("referrerId");
+        console.log("CAPTURE RESPONSE:", captureRes.data);
 
-                if (referralCode && referrerId) {
-                    try {
-                        const refRes = await axios.post(`${MY_API}auth/apply-referral`, {
-                            referrerId: Number(referrerId),
-                            refereeId: Number(clientUserId),
-                            planId: Number(planId),
-                        });
+        const isSuccess = captureRes?.data?.success;
+        const captureStatus = captureRes?.data?.captureStatus;
 
-                        if (refRes.data?.applied) {
-                            console.log("Referral applied successfully");
-                        } else {
-                            console.log("Referral skipped:", refRes.data?.msg);
-                        }
-
-                        await AsyncStorage.removeItem("appliedReferralCode");
-                        await AsyncStorage.removeItem("referrerId");
-
-                    } catch (e) {
-                        console.log("Referral apply failed:", e);
-                    }
-                }
-
-
-
-                // console.log("Subscription payload:", {
-                //     clientUserId: Number(clientUserId),
-                //     planId: Number(planId),
-                //     planName,
-                //     price: Number(price),
-                //     durationDays: Number(durationDays),
-                // });
-                // console.log("Payment payload:", {
-                //     clientUserId: Number(clientUserId),
-                //     planId: Number(planId),
-                //     subscriptionId: Number(subscriptionId),
-                //     amount: Number(price),
-                //     transactionId: orderId,
-                //     paymentStatus: "success",
-                // });
-
-
-
-
-                Alert.alert("Success 🎉", "Payment successful!", [
-                    {
-                        text: "OK",
-                        onPress: () => {
-                            navigation.reset({
-                                index: 0,
-                                routes: [
-                                    {
-                                        name: "Dashboard",
-                                        params: { refresh: true },
-                                    },
-                                ],
-                            });
-                        },
-                    },
-                ]);
-
-
-
-            } else if (result.type === "cancel") {
-                Alert.alert("Cancelled", "Payment cancelled");
+        if (!isSuccess || captureStatus !== "COMPLETED") {
+            if (captureStatus === "PENDING") {
+                Alert.alert(
+                    "Payment Pending",
+                    "Your payment is pending in PayPal. Please wait or contact support if it does not update."
+                );
+                return;
             }
 
-        } catch (err) {
-            console.log("Payment Error:", err);
-            Alert.alert("Error", "Payment or subscription failed");
+            throw new Error("Payment not completed");
         }
-    };
+
+        // 4️⃣ Save subscription
+        const subRes = await axios.post(`${MY_API}subscription`, {
+            clientUserId: Number(clientUserId),
+            planId: Number(planId),
+            planName,
+            price: Number(price),
+            durationDays: Number(durationDays),
+        });
+
+        const subscriptionId =
+            subRes?.data?.subscriptionId ??
+            subRes?.data?.data?.subscriptionId ??
+            subRes?.data?.id ??
+            subRes?.data?.subscription?.id;
+
+        if (!subscriptionId) throw new Error("Subscription creation failed");
+
+        // 5️⃣ Save payment
+        await axios.post(`${MY_API}payment`, {
+            clientUserId: Number(clientUserId),
+            planId: Number(planId),
+            subscriptionId: Number(subscriptionId),
+            amount: Number(price),
+            transactionId: orderId,
+            paymentStatus: "success",
+        });
+
+        // 6️⃣ Apply referral if exists
+        const referralCode = await AsyncStorage.getItem("appliedReferralCode");
+        const referrerId = await AsyncStorage.getItem("referrerId");
+
+        if (referralCode && referrerId) {
+            try {
+                const refRes = await axios.post(`${MY_API}auth/apply-referral`, {
+                    referrerId: Number(referrerId),
+                    refereeId: Number(clientUserId),
+                    planId: Number(planId),
+                });
+
+                if (refRes.data?.applied) {
+                    console.log("Referral applied successfully");
+                } else {
+                    console.log("Referral skipped:", refRes.data?.msg);
+                }
+
+                await AsyncStorage.removeItem("appliedReferralCode");
+                await AsyncStorage.removeItem("referrerId");
+            } catch (e) {
+                console.log("Referral apply failed:", e?.response?.data || e.message);
+            }
+        }
+
+        Alert.alert("Success 🎉", "Payment successful!", [
+            {
+                text: "OK",
+                onPress: () => {
+                    navigation.reset({
+                        index: 0,
+                        routes: [
+                            {
+                                name: "Dashboard",
+                                params: { refresh: true },
+                            },
+                        ],
+                    });
+                },
+            },
+        ]);
+    } catch (err) {
+        console.log("Payment Error:", err?.response?.data || err.message);
+        Alert.alert("Error", "Payment or subscription failed");
+    }
+};
 
     return (
         <View style={styles.container}>
