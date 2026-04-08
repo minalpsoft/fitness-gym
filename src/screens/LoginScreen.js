@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState,useContext  } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { AuthContext } from "../context/AuthContext";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const MY_API = process.env.EXPO_PUBLIC_MY_API;
 
@@ -10,52 +11,100 @@ export default function LoginScreen({ navigation }) {
     const [password, setPassword] = useState('');
     // const API_BASE_URL = "http://192.168.31.43:3000/";
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            alert("Email and password required");
+    // const handleLogin = async () => {
+    //     if (!email || !password) {
+    //         alert("Email and password required");
+    //         return;
+    //     }
+
+    //     try {
+    //         const res = await fetch(`${MY_API}auth/login`, {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({ email, password }),
+    //         });
+
+    //         const data = await res.json();
+    //         // console.log("LOGIN RESPONSE:", data);
+
+    //         if (!res.ok) {
+    //             alert(data.message || "Email or password is incorrect");
+    //             return;
+    //         }
+
+    //         if (!data.clientUserId) {
+    //             // alert("Login succeeded but clientUserId missing");
+    //             alert("Login failed! Cannot find Client");
+    //             return;
+    //         }
+
+    //         await AsyncStorage.setItem(
+    //             "clientUserId",
+    //             String(data.clientUserId)
+    //         );
+
+
+    //         navigation.reset({
+    //             index: 0,
+    //             routes: [{ name: "Dashboard" }],
+    //         });
+
+
+    //     } catch (err) {
+    //         console.log(err);
+    //         alert("Something went wrong");
+    //     }
+    // };
+
+    const { setIsLoggedIn } = useContext(AuthContext);
+
+const handleLogin = async () => {
+    if (!email || !password) {
+        alert("Email and password required");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${MY_API}auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+        console.log("LOGIN RESPONSE FULL:", JSON.stringify(data, null, 2));
+
+        if (!res.ok) {
+            alert(data.message || data.msg || "Email or password is incorrect");
             return;
         }
 
-        try {
-            const res = await fetch(`${MY_API}auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
+        const clientUserId =
+            data?.clientUserId ??
+            data?.data?.clientUserId ??
+            data?.user?.id ??
+            data?.id;
 
-            const data = await res.json();
-            // console.log("LOGIN RESPONSE:", data);
+        console.log("EXTRACTED clientUserId:", clientUserId);
 
-            if (!res.ok) {
-                alert(data.message || "Email or password is incorrect");
-                return;
-            }
-
-            if (!data.clientUserId) {
-                // alert("Login succeeded but clientUserId missing");
-                alert("Login failed! Cannot find Client");
-                return;
-            }
-
-            await AsyncStorage.setItem(
-                "clientUserId",
-                String(data.clientUserId)
-            );
-
-
-            navigation.reset({
-                index: 0,
-                routes: [{ name: "Dashboard" }],
-            });
-
-
-        } catch (err) {
-            console.log(err);
-            alert("Something went wrong");
+        if (!clientUserId) {
+            alert("Login failed! Cannot find Client");
+            return;
         }
-    };
 
+        await AsyncStorage.setItem("clientUserId", String(clientUserId));
 
+        const savedId = await AsyncStorage.getItem("clientUserId");
+        console.log("SAVED clientUserId:", savedId);
+
+        // ✅ Switch app to logged in state
+        setIsLoggedIn(true);
+
+    } catch (err) {
+        console.log("LOGIN ERROR:", err);
+        alert("Something went wrong");
+    }
+};
 
     return (
         <ScrollView contentContainerStyle={styles.container}>

@@ -17,6 +17,8 @@ import PaypalPayment from './src/screens/PaypalPayment';
 import PaypalSandbox from './src/screens/PaypalSandbox';
 import ForgotPassword from './src/screens/ForgotPassword';
 
+import { AuthContext } from './src/context/AuthContext';
+
 import {
   useFonts,
   Poppins_400Regular,
@@ -34,7 +36,7 @@ export default function App() {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const [initialRoute, setInitialRoute] = useState("LoginScreen");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     checkLoginStatus();
@@ -43,15 +45,16 @@ export default function App() {
   const checkLoginStatus = async () => {
     try {
       const clientUserId = await AsyncStorage.getItem("clientUserId");
+      console.log("APP START - STORED clientUserId:", clientUserId);
 
       if (clientUserId) {
-        setInitialRoute("Dashboard");
+        setIsLoggedIn(true);
       } else {
-        setInitialRoute("LoginScreen");
+        setIsLoggedIn(false);
       }
     } catch (error) {
       console.log("Error checking login status:", error);
-      setInitialRoute("LoginScreen");
+      setIsLoggedIn(false);
     } finally {
       setIsLoading(false);
     }
@@ -73,22 +76,31 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <StatusBar barStyle="light-content" />
-      <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="Dashboard" component={Dashboard} />
-        <Stack.Screen name="ChoosePlan" component={ChoosePlan} />
-        <Stack.Screen name="MakePayment" component={MakePayment} />
-        <Stack.Screen name="PaypalPayment" component={PaypalPayment} />
-        <Stack.Screen name="PaypalSandbox" component={PaypalSandbox} />
-        <Stack.Screen name="BuyPlan" component={BuyPlan} />
-        <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
-        <Stack.Screen name="PaymentHistory" component={PaymentHistory} />
-        <Stack.Screen name="ReferralCode" component={ReferralCode} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+      <NavigationContainer>
+        <StatusBar barStyle="light-content" />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {isLoggedIn ? (
+            <>
+              <Stack.Screen name="Dashboard" component={Dashboard} />
+              <Stack.Screen name="ChoosePlan" component={ChoosePlan} />
+              <Stack.Screen name="MakePayment" component={MakePayment} />
+              <Stack.Screen name="PaypalPayment" component={PaypalPayment} />
+              <Stack.Screen name="PaypalSandbox" component={PaypalSandbox} />
+              <Stack.Screen name="BuyPlan" component={BuyPlan} />
+              <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
+              <Stack.Screen name="PaymentHistory" component={PaymentHistory} />
+              <Stack.Screen name="ReferralCode" component={ReferralCode} />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="LoginScreen" component={LoginScreen} />
+              <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
+              <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthContext.Provider>
   );
 }

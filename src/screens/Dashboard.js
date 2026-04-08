@@ -1,5 +1,6 @@
 import React from 'react';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,16 +23,16 @@ export default function Dashboard({ navigation, route }) {
         }
     }, [route.params?.refresh]);
 
-//     useEffect(() => {
-//   const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-//     if (!navigation.canGoBack()) {
-//       return;
-//     }
-//     e.preventDefault();
-//   });
+    //     useEffect(() => {
+    //   const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+    //     if (!navigation.canGoBack()) {
+    //       return;
+    //     }
+    //     e.preventDefault();
+    //   });
 
-//   return unsubscribe;
-// }, [navigation]);
+    //   return unsubscribe;
+    // }, [navigation]);
 
     useEffect(() => {
         const loadUser = async () => {
@@ -104,6 +105,35 @@ export default function Dashboard({ navigation, route }) {
         initReferralCode();
     }, []);
 
+    const { setIsLoggedIn } = useContext(AuthContext);
+
+    // const handleLogout = () => {
+    //     Alert.alert(
+    //         "Logout",
+    //         "Are you sure you want to logout?",
+    //         [
+    //             {
+    //                 text: "Cancel",
+    //                 style: "cancel",
+    //             },
+    //             {
+    //                 text: "Logout",
+    //                 style: "destructive",
+    //                 onPress: async () => {
+    //                     await AsyncStorage.removeItem("clientUserId");
+    //                     await AsyncStorage.removeItem("referralCode");
+
+    //                     navigation.reset({
+    //                         index: 0,
+    //                         routes: [{ name: "LoginScreen" }],
+    //                     });
+    //                 },
+    //             },
+    //         ],
+    //         { cancelable: true }
+    //     );
+    // };
+
     const handleLogout = () => {
         Alert.alert(
             "Logout",
@@ -117,21 +147,22 @@ export default function Dashboard({ navigation, route }) {
                     text: "Logout",
                     style: "destructive",
                     onPress: async () => {
-                        await AsyncStorage.removeItem("clientUserId");
-                        await AsyncStorage.removeItem("referralCode");
+                        try {
+                            await AsyncStorage.removeItem("clientUserId");
+                            await AsyncStorage.removeItem("referralCode");
+                            await AsyncStorage.removeItem("appliedReferralCode");
+                            await AsyncStorage.removeItem("referrerId");
 
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: "LoginScreen" }],
-                        });
+                            setIsLoggedIn(false);
+                        } catch (error) {
+                            console.log("Logout error:", error);
+                        }
                     },
                 },
             ],
             { cancelable: true }
         );
     };
-
-
 
     return (
         <ScrollView contentContainerStyle={styles.container}>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -45,22 +46,22 @@ export default function ReferralCode({ navigation }) {
     // };
 
     const fetchUser = async (clientUserId) => {
-    try {
-        const res = await axios.get(`${MY_API}auth/user/${clientUserId}`);
-        setUserName(res.data.data.name);
-        setReferralCode(res.data.data.referral_code);
+        try {
+            const res = await axios.get(`${MY_API}auth/user/${clientUserId}`);
+            setUserName(res.data.data.name);
+            setReferralCode(res.data.data.referral_code);
 
-        // Show reward if user has any pending referral reward
-        if (res.data.data.referral_reward) {
-            Alert.alert(
-                "Reward Available!",
-                "You earned 50% off next month from a referral!"
-            );
+            // Show reward if user has any pending referral reward
+            if (res.data.data.referral_reward) {
+                Alert.alert(
+                    "Reward Available!",
+                    "You earned 50% off next month from a referral!"
+                );
+            }
+        } catch (err) {
+            console.error("Failed to fetch user", err);
         }
-    } catch (err) {
-        console.error("Failed to fetch user", err);
-    }
-};
+    };
 
 
     useEffect(() => {
@@ -73,6 +74,8 @@ export default function ReferralCode({ navigation }) {
 
 
     // logout
+    const { setIsLoggedIn } = useContext(AuthContext);
+
     const handleLogout = () => {
         Alert.alert(
             "Logout",
@@ -86,13 +89,16 @@ export default function ReferralCode({ navigation }) {
                     text: "Logout",
                     style: "destructive",
                     onPress: async () => {
-                        await AsyncStorage.removeItem("clientUserId");
-                        await AsyncStorage.removeItem("referralCode");
+                        try {
+                            await AsyncStorage.removeItem("clientUserId");
+                            await AsyncStorage.removeItem("referralCode");
+                            await AsyncStorage.removeItem("appliedReferralCode");
+                            await AsyncStorage.removeItem("referrerId");
 
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: "LoginScreen" }],
-                        });
+                            setIsLoggedIn(false);
+                        } catch (error) {
+                            console.log("Logout error:", error);
+                        }
                     },
                 },
             ],

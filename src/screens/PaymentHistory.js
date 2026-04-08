@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView,Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState, useEffect,useCallback } from 'react';
+import { AuthContext } from "../context/AuthContext";
+import { useState, useEffect,useCallback,useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const MY_API = process.env.EXPO_PUBLIC_MY_API;
@@ -12,7 +13,9 @@ import { useFocusEffect } from '@react-navigation/native';
 export default function PaymentHistory({ navigation,route }) {
 
     
-    const handleLogout = () => {
+       const { setIsLoggedIn } = useContext(AuthContext);
+   
+        const handleLogout = () => {
         Alert.alert(
             "Logout",
             "Are you sure you want to logout?",
@@ -25,13 +28,16 @@ export default function PaymentHistory({ navigation,route }) {
                     text: "Logout",
                     style: "destructive",
                     onPress: async () => {
-                        await AsyncStorage.removeItem("clientUserId");
-                        await AsyncStorage.removeItem("referralCode");
+                        try {
+                            await AsyncStorage.removeItem("clientUserId");
+                            await AsyncStorage.removeItem("referralCode");
+                            await AsyncStorage.removeItem("appliedReferralCode");
+                            await AsyncStorage.removeItem("referrerId");
 
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: "LoginScreen" }],
-                        });
+                            setIsLoggedIn(false);
+                        } catch (error) {
+                            console.log("Logout error:", error);
+                        }
                     },
                 },
             ],
